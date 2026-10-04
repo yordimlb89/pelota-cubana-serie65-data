@@ -1,0 +1,49 @@
+name: Actualizar Serie 65
+
+on:
+  schedule:
+    - cron: '0 20 * * *'
+      timezone: America/New_York
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/actualizar-serie65.yml'
+      - 'update.py'
+      - 'requirements.txt'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: actualizar-serie65
+  cancel-in-progress: false
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Descargar archivos
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependencias
+        run: python -m pip install -r requirements.txt
+
+      - name: Consultar fuentes y actualizar datos
+        run: python update.py
+
+      - name: Guardar datos
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Actualizar datos de la Serie 65"
+          git push
