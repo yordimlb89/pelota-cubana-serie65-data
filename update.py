@@ -2,15 +2,24 @@
 Requires lxml. Each run rechecks the calendar, team totals and recent games.
 Rejects other tournaments and incomplete team imports before replacing saved data.
 """
-import concurrent.futures,datetime,gzip,hashlib,json,pathlib,re,sys,time,unicodedata,urllib.request
+import concurrent.futures,datetime,gzip,hashlib,json,os,pathlib,re,sys,time,unicodedata,urllib.request
 from lxml import html
-ROOT=pathlib.Path(__file__).resolve().parent; CACHE=pathlib.Path('/tmp/s65');CACHE.mkdir(exist_ok=True)
+ROOT=pathlib.Path(__file__).resolve().parent; CACHE=pathlib.Path(os.environ.get('SERIE65_CACHE_DIR', str(ROOT/'.serie65-progress')));CACHE.mkdir(parents=True,exist_ok=True)
 BASE='https://www.beisbolcubano.cu/'; NOW=datetime.datetime.now(datetime.timezone.utc).isoformat()
 USE_CACHE='--cached' in sys.argv
+from zoneinfo import ZoneInfo
+if not USE_CACHE:
+ CACHE=CACHE/datetime.datetime.now(ZoneInfo('America/New_York')).date().isoformat()
+ CACHE.mkdir(parents=True,exist_ok=True)
+ if (CACHE/'complete').exists():
+  for old in CACHE.glob('*.html'):old.unlink()
+  (CACHE/'complete').unlink()
 TEAMS={'ART':'Artemisa','IJV':'Isla de la Juventud','PRI':'Pinar del Río','IND':'Industriales','MAY':'Mayabeque','VCL':'Villa Clara','MTZ':'Matanzas','CFG':'Cienfuegos','SSP':'Sancti Spíritus','CMG':'Camagüey','CAV':'Ciego de Ávila','LTU':'Las Tunas','HOL':'Holguín','GRA':'Granma','GTM':'Guantánamo','SCU':'Santiago de Cuba'}
 def fetch(key,path):
  f=CACHE/(key+'.html')
- if USE_CACHE and f.exists():raw=f.read_bytes()
+ if f.exists():
+  print(f'Resuming {key} from saved progress',flush=True)
+  raw=f.read_bytes()
  else:
   for attempt in range(4):
    try:
@@ -21,10 +30,11 @@ def fetch(key,path):
     print(f'Failed {key}: {exc}',flush=True)
     if attempt==3:raise RuntimeError(f'Unable to download {BASE+path} after 4 attempts') from exc
     time.sleep(5*(attempt+1))
-  f.write_bytes(raw)
  d=html.fromstring(raw)
  for x in d.xpath('//script|//style'):x.drop_tree()
  assert 'LXV SERIE NACIONAL' in plain(d).upper(),f'Wrong tournament: {key}'
+ if not f.exists():
+  tmp=f.with_suffix('.tmp');tmp.write_bytes(raw);tmp.replace(f)
  return d
 def plain(x):return ' '.join(x.text_content().split())
 def cell(x):
@@ -113,4 +123,5 @@ for report in reports.values():
  for t in report['structured']:
   assert all(len(r)==len(t['columns']) for r in t['rows'])
 output=ROOT/'data.json';tmp=ROOT/'data.tmp';tmp.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':'))+'\n');tmp.replace(output)
+(CACHE/'complete').write_text(NOW)
 print(json.dumps({'updatedAt':NOW,'games':len(games),'boxscores':len(boxes),'players':len(players),'sourcesChecked':2}))
