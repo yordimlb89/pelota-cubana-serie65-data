@@ -12,13 +12,15 @@ def fetch(key,path):
  f=CACHE/(key+'.html')
  if USE_CACHE and f.exists():raw=f.read_bytes()
  else:
-  for attempt in range(3):
+  for attempt in range(4):
    try:
-    with urllib.request.urlopen(BASE+path,timeout=40) as r:raw=r.read()
+    print(f'Fetching {key}, attempt {attempt+1}/4: {BASE+path}',flush=True)
+    with urllib.request.urlopen(BASE+path,timeout=90) as r:raw=r.read()
     break
-   except Exception:
-    if attempt==2:raise
-    time.sleep(1)
+   except Exception as exc:
+    print(f'Failed {key}: {exc}',flush=True)
+    if attempt==3:raise RuntimeError(f'Unable to download {BASE+path} after 4 attempts') from exc
+    time.sleep(5*(attempt+1))
   f.write_bytes(raw)
  d=html.fromstring(raw)
  for x in d.xpath('//script|//style'):x.drop_tree()
@@ -63,10 +65,10 @@ for day in calendar.xpath('//li[starts-with(@id,"Gameday_")]'):
  for a in day.xpath('.//a[contains(@href,"idJuego")]'):
   gid=int(re.search(r'idJuego=(\d+)',a.get('href'))[1]);codes=[plain(s) for s in a.xpath('./span[contains(@class,"visible-xs")]')];assert len(codes)==2
   value=plain(a.xpath('./span[contains(@class,"resultado")]')[0]);score=re.fullmatch(r'(\d+)\s*-\s*(\d+)',value)
-  games.append({'id':f'snb65-clasificatoria-{gid}','number':gid,'date':date,'away':codes[0],'home':codes[1],'awayName':TEAMS[codes[0]],'homeName':TEAMS[codes[1]],'score':[int(score[1]),int(score[2])] if score else None,'time':value if not score else '', 'venue':plain(a.xpath('./span[contains(@class,"sede")]')[0]),'reportId':uid('game:'+str(gid)) if score else None,'source':BASE+'estadisticas/BoxScore.aspx?idJuego='+str(gid)})
+  games.append({'id':f'snb65-clasificatoria-{gid}','number':gid,'date':date,'away':codes[0],'home':codes[1],'awayName':TEAMS[codes[0]],'homeName':TEAMS[codes[1]],'score':[int(score[1]),int(score[2])] if score else None,'time':value if not score else '', 'venue':plain(a.xpath('./span[contains(@class,"sede")]')[0]),'reportId':uid('game:'+str(gid)) if score else None,'source':BASE+'estadisticas/BoxScore?idJuego='+str(gid)})
 assert len(games)>300 and len({g['id'] for g in games})==len(games)
 jobs=[('team-'+code,'estadisticas/estadisticas?eq='+code+'&tipo=1&tab=0') for code in TEAMS]+[('standings','estadisticas/Posiciones.aspx'),('bat','estadisticas/estadisticas?eq=snb&tab=0&tipo=1')]
-with concurrent.futures.ThreadPoolExecutor(max_workers=4) as ex:docs=dict(ex.map(lambda x:(x[0],fetch(*x)),jobs))
+with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:docs=dict(ex.map(lambda x:(x[0],fetch(*x)),jobs))
 individual=[]
 for code in TEAMS:individual+=tables(docs['team-'+code],code)
 assert len({r[1] for t in individual for r in t['rows']})>=14,'Incomplete team statistics'
@@ -84,11 +86,11 @@ def box(g):
  saved=previous_data.get('reports',{}).get(uid('game:'+str(g['number'])))
  if saved and previous.get(g['id'],{}).get('score')==g['score'] and (datetime.date.today()-datetime.date.fromisoformat(g['date'])).days>7:
   return g,saved['structured']
- d=fetch('game'+str(g['number']),'estadisticas/BoxScore.aspx?idJuego='+str(g['number'])); text=plain(d)
+ d=fetch('game'+str(g['number']),'estadisticas/BoxScore?idJuego='+str(g['number'])); text=plain(d)
  assert g['date'][:4] in text and 'LXV SERIE NACIONAL' in text.upper(), 'Wrong game season'
  ts=tables(d,game=g);assert ts,'Missing boxscore'
  return g,ts
-with concurrent.futures.ThreadPoolExecutor(max_workers=4) as ex:boxes=list(ex.map(box,finished))
+with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:boxes=list(ex.map(box,finished))
 # The downloads page is independently checked for the current competition.
 downloads=fetch('downloads','descargar_Info')
 document_links=[{'title':plain(a),'url':a.get('href')} for a in downloads.xpath('//a[@href]') if '/BeisbolSN65/' in a.get('href','') and '.pdf' in a.get('href','').lower()]
