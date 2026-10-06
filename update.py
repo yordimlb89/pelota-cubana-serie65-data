@@ -15,27 +15,33 @@ if not USE_CACHE:
   for old in CACHE.glob('*.html'):old.unlink()
   (CACHE/'complete').unlink()
 TEAMS={'ART':'Artemisa','IJV':'Isla de la Juventud','PRI':'Pinar del Río','IND':'Industriales','MAY':'Mayabeque','VCL':'Villa Clara','MTZ':'Matanzas','CFG':'Cienfuegos','SSP':'Sancti Spíritus','CMG':'Camagüey','CAV':'Ciego de Ávila','LTU':'Las Tunas','HOL':'Holguín','GRA':'Granma','GTM':'Guantánamo','SCU':'Santiago de Cuba'}
-def fetch(key,path):
+def fetch(key,path,validate=None):
  f=CACHE/(key+'.html')
+ def parse(raw):
+  d=html.fromstring(raw)
+  for x in d.xpath('//script|//style'):x.drop_tree()
+  assert 'LXV SERIE NACIONAL' in plain(d).upper(),f'Wrong tournament: {key}'
+  if validate is not None:validate(d)
+  return d
  if f.exists():
-  print(f'Resuming {key} from saved progress',flush=True)
-  raw=f.read_bytes()
- else:
-  for attempt in range(4):
-   try:
-    print(f'Fetching {key}, attempt {attempt+1}/4: {BASE+path}',flush=True)
-    with urllib.request.urlopen(BASE+path,timeout=90) as r:raw=r.read()
-    break
-   except Exception as exc:
-    print(f'Failed {key}: {exc}',flush=True)
-    if attempt==3:raise RuntimeError(f'Unable to download {BASE+path} after 4 attempts') from exc
-    time.sleep(5*(attempt+1))
- d=html.fromstring(raw)
- for x in d.xpath('//script|//style'):x.drop_tree()
- assert 'LXV SERIE NACIONAL' in plain(d).upper(),f'Wrong tournament: {key}'
- if not f.exists():
-  tmp=f.with_suffix('.tmp');tmp.write_bytes(raw);tmp.replace(f)
- return d
+  try:
+   d=parse(f.read_bytes())
+   print(f'Resuming {key} from saved progress',flush=True)
+   return d
+  except (AssertionError,ValueError,html.etree.ParserError) as exc:
+   print(f'Discarding invalid saved page {key}: {exc}',flush=True)
+   f.unlink()
+ for attempt in range(4):
+  try:
+   print(f'Fetching {key}, attempt {attempt+1}/4: {BASE+path}',flush=True)
+   with urllib.request.urlopen(BASE+path,timeout=90) as r:raw=r.read()
+   d=parse(raw)
+   tmp=f.with_suffix('.tmp');tmp.write_bytes(raw);tmp.replace(f)
+   return d
+  except Exception as exc:
+   print(f'Failed {key}: {exc}',flush=True)
+   if attempt==3:raise RuntimeError(f'Unable to validate {BASE+path} after 4 attempts: {exc}') from exc
+   time.sleep(5*(attempt+1))
 def plain(x):return ' '.join(x.text_content().split())
 def cell(x):
  text=plain(x)
@@ -96,10 +102,11 @@ def box(g):
  saved=previous_data.get('reports',{}).get(uid('game:'+str(g['number'])))
  if saved and previous.get(g['id'],{}).get('score')==g['score'] and (datetime.date.today()-datetime.date.fromisoformat(g['date'])).days>7:
   return g,saved['structured']
- d=fetch('game'+str(g['number']),'estadisticas/BoxScore?idJuego='+str(g['number'])); text=plain(d)
- assert g['date'][:4] in text and 'LXV SERIE NACIONAL' in text.upper(), 'Wrong game season'
- ts=tables(d,game=g);assert ts,'Missing boxscore'
- return g,ts
+ def validate(d):
+  assert g['date'][:4] in plain(d), 'Wrong game season'
+  assert tables(d,game=g), f"Missing boxscore for game {g['number']} ({g['date']})"
+ d=fetch('game'+str(g['number']),'estadisticas/BoxScore?idJuego='+str(g['number']),validate=validate)
+ return g,tables(d,game=g)
 with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:boxes=list(ex.map(box,finished))
 # The downloads page is independently checked for the current competition.
 downloads=fetch('downloads','descargar_Info')
