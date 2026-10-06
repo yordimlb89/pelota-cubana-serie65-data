@@ -1,0 +1,122 @@
+name: Actualizar equipos Serie 65
+on:
+  schedule:
+    - cron: '0 2,20,22 * * *'
+      timezone: America/New_York
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/actualizar-equipos.yml']
+permissions:
+  contents: write
+concurrency:
+  group: equipos-serie65
+  cancel-in-progress: false
+jobs:
+  equipos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install lxml
+      - name: Consultar y guardar cada equipo
+        run: |
+          python - <<'PYTEAMS'
+          """Series 65 team snapshots. Each valid team is checkpointed independently."""
+          import datetime,hashlib,json,os,pathlib,re,time,urllib.request,urllib.parse
+          from lxml import html
+          TEAMS={'ART':'Artemisa','IJV':'Isla de la Juventud','PRI':'Pinar del Río','IND':'Industriales','MAY':'Mayabeque','VCL':'Villa Clara','MTZ':'Matanzas','CFG':'Cienfuegos','SSP':'Sancti Spíritus','CMG':'Camagüey','CAV':'Ciego de Ávila','LTU':'Las Tunas','HOL':'Holguín','GRA':'Granma','GTM':'Guantánamo','SCU':'Santiago de Cuba'}
+          BASE='https://www.beisbolcubano.cu/';ROOT=pathlib.Path(os.environ.get('TEAM_OUTPUT','teams'));ROOT.mkdir(parents=True,exist_ok=True)
+          FILE=ROOT/'65.json'
+          def write(path,value):
+           path.parent.mkdir(parents=True,exist_ok=True);tmp=path.with_suffix('.tmp');tmp.write_text(json.dumps(value,ensure_ascii=False,separators=(',',':')));tmp.replace(path)
+          def text(node):return ' '.join(node.text_content().split())
+          def parse(raw,code):
+           d=html.fromstring(raw)
+           assert 'LXV SERIE NACIONAL' in text(d).upper(),'La página no corresponde a la Serie 65'
+           roster=[];staff=[]
+           for section in d.xpath('//*[starts-with(@id,"TeamRoster_")]'):
+            position={'Pitcher':'P','Catcher':'C','Infielder':'IF','Outfielder':'OF'}.get(section.get('id').replace('TeamRoster_',''),'')
+            for box in section.xpath('.//*[contains(concat(" ",normalize-space(@class)," ")," roster_player_info ")]'):
+             links=box.xpath('.//a[@href]')
+             if not links:continue
+             a=links[0];href=urllib.parse.urljoin(BASE,a.get('href'));nm=text(a)
+             if not nm:continue
+             shirt=box.xpath('.//*[contains(@class,"shirt")]');number=text(shirt[0]).strip(' -') if shirt else ''
+             images=box.getparent().xpath('.//img/@src');photo=urllib.parse.urljoin(BASE,images[0]) if images else ''
+             item={'name':nm,'number':number,'source':href,'photo':photo}
+             pid=re.search(r'idJugador=(\d+)',href,re.I)
+             if pid and position:
+              item.update(sourceId=pid[1],position=position)
+              for label,key in [('Fecha de Nacimiento','birthDate'),('Batea/Tira','batsThrows'),('Altura','height'),('Peso','weight')]:
+               labelnode=box.xpath('.//*[@title=$label]',label=label)
+               if labelnode:item[key]=text(labelnode[0].getparent()).split(':',1)[-1].strip()
+              roster.append(item)
+             else:
+              rest=text(box).replace(text(shirt[0]) if shirt else '', '',1).replace(nm,'',1).strip();item['role']=rest;staff.append(item)
+           assert len(roster)>=15,'Nómina vacía o incompleta'
+           assert len(staff)>=2,'Cuerpo técnico vacío o incompleto'
+           assert len({p['sourceId'] for p in roster})==len(roster),'Jugadores repetidos'
+           return {'code':code,'name':TEAMS[code],'source':BASE+'general/equipos?eq='+code.lower(),'roster':roster,'staff':staff}
+          def main():
+           try:data=json.loads(FILE.read_text());assert data['edition']==65
+           except (OSError,ValueError,KeyError,AssertionError):data={'schema':1,'competition':'nacional','edition':65,'teams':{}}
+           failures=[]
+           for code in os.environ.get('TEAM_CODES',','.join(TEAMS)).split(','):
+            now=datetime.datetime.now(datetime.timezone.utc).isoformat()
+            try:
+             raw=urllib.request.urlopen(BASE+'general/equipos?eq='+code.lower(),timeout=25).read();team=parse(raw,code)
+             digest=hashlib.sha256(json.dumps(team,sort_keys=True).encode()).hexdigest()[:16];old=data['teams'].get(code,{})
+             changed=digest!=old.get('fingerprint');team.update(checkedAt=now,fingerprint=digest,changedAt=now if changed else old.get('changedAt',now))
+             data['teams'][code]=team
+             if changed:write(ROOT/'history'/'65'/code/(now.replace(':','-')+'.json'),team)
+             print(code,len(team['roster']),len(team['staff']),flush=True)
+            except Exception as e:failures.append({'code':code,'error':str(e)[:200],'checkedAt':now});print('::warning::'+code+' '+str(e),flush=True)
+            data.update(updatedAt=now,failures=failures);write(FILE,data)
+           if not data['teams']:raise RuntimeError('No team data available')
+          if __name__=='__main__':main()
+          PYTEAMS
+      - name: Respaldo de los equipos recuperados
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: equipos-serie65-${{ github.run_id }}
+          path: teams/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Publicar datos sin sobrescribir otras actualizaciones
+        if: always()
+        run: |
+          test -f teams/65.json || exit 1
+          cp -a teams "$RUNNER_TEMP/teams-candidate"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python - <<'PYMERGE'
+          import json,os,pathlib,shutil
+          src=pathlib.Path(os.environ['RUNNER_TEMP'])/'teams-candidate'
+          dst=pathlib.Path('teams');dst.mkdir(exist_ok=True)
+          candidate=json.loads((src/'65.json').read_text())
+          try: current=json.loads((dst/'65.json').read_text())
+          except FileNotFoundError: current={**candidate,'teams':{}}
+          teams=current.get('teams',{})
+          for code,team in candidate['teams'].items():
+              if team['checkedAt']>=teams.get(code,{}).get('checkedAt',''):teams[code]=team
+          result={**(candidate if candidate['updatedAt']>=current.get('updatedAt','') else current),'teams':teams}
+          (dst/'65.json').write_text(json.dumps(result,ensure_ascii=False,separators=(',',':')))
+          for p in (src/'history').rglob('*.json'):
+              dest=dst/p.relative_to(src);dest.parent.mkdir(parents=True,exist_ok=True)
+              if not dest.exists():shutil.copyfile(p,dest)
+          PYMERGE
+            git add teams
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m 'Actualizar equipos y conservar historial Serie 65'
+            if git push origin HEAD:main; then exit 0; fi
+            sleep 3
+          done
+          echo 'No se pudo publicar. Los datos permanecen en el artefacto de esta ejecución.'
+          exit 1
