@@ -2,7 +2,7 @@ name: Actualizar Serie 65
 
 on:
   schedule:
-    - cron: '0 2,20 * * *'
+    - cron: '0 2,22 * * *'
       timezone: America/New_York
   workflow_dispatch:
   push:
