@@ -25,6 +25,9 @@ jobs:
     steps:
       - name: Descargar archivos
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
 
       - name: Preparar Python
         uses: actions/setup-python@v5
@@ -72,11 +75,71 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          python -c "import json; d=json.load(open(\"data.json\")); assert d[\"schema\"] == 1 and d[\"snapshot\"][\"edition\"] == 65"
-          git add data.json
-          if git diff --cached --quiet; then
-            exit 0
-          fi
-          git commit -m "Actualizar datos de la Serie 65"
-          git pull --rebase origin main
-          git push
+          publish_dir=$(mktemp -d)
+          cp data.json "$publish_dir/candidate.json"
+          cat > "$publish_dir/merge.py" <<'PY'
+          import copy,json,sys
+          
+          def merge(a,b):
+           for d in (a,b):
+            assert d['schema']==1 and d['snapshot']['edition']==65
+            assert all(len(row)==len(t['columns']) for r in d['reports'].values() for t in r.get('structured',[]) for row in t['rows'])
+           old,new=sorted((a,b),key=lambda d:d['snapshot']['updatedAt'])
+           out=copy.deepcopy(new)
+           records={r['id']:copy.deepcopy(r) for d in (old,new) for r in d['records']}
+           reports={}
+           for rid in set(old['reports'])|set(new['reports']):
+            options=[(d,d['reports'][rid]) for d in (old,new) if rid in d['reports']]
+            options.sort(key=lambda x:x[1].get('updatedAt',x[0]['snapshot']['updatedAt']))
+            reports[rid]=copy.deepcopy(options[-1][1])
+            if 'individuales' not in records[rid].get('title','').lower():continue
+            tables={}
+            for d,r in options:
+             for t in r['structured']:
+              cols=t['columns']; teamcol=cols.index('Equipo') if 'Equipo' in cols else -1
+              tablekey=(t['group'],tuple(cols),t.get('label',''))
+              target=tables.setdefault(tablekey,{'table':copy.deepcopy(t),'rows':{}})
+              for row in t['rows']:
+               team=row[teamcol] if teamcol>=0 else ''
+               k=(row[0],team);previous=target['rows'].get(k)
+               fresh=team not in d.get('updateStatus',{}).get('staleTeams',[])
+               if previous is None or fresh or not previous[1]:target['rows'][k]=(row,fresh)
+            reports[rid]['structured']=[{**v['table'],'rows':[pair[0] for pair in v['rows'].values()]} for v in tables.values()]
+           out['reports']=reports;out['records']=[r for rid,r in records.items() if rid in reports]
+           players={}
+           for d in (old,new):
+            for p in d['players']:
+             prior=players.get(p['id'],{});players[p['id']]={**prior,**p,'refs':sorted(set(prior.get('refs',[]))|set(p.get('refs',[])))}
+           out['players']=list(players.values())
+           games={g['id']:copy.deepcopy(g) for d in (old,new) for g in d['snapshot']['games']}
+           boxby={str(r['game']['number']):r for r in out['records'] if r['kind']=='Juegos' and r.get('game')}
+           pending=[];count=0
+           for g in games.values():
+            box=boxby.get(str(g['number']));g['reportId']=None
+            if box and g.get('score') is not None and list(map(str,g['score']))==box['game']['scores']:g['reportId']=box['id'];count+=1
+            elif g.get('score') is not None:pending.append(g['id'])
+           out['snapshot'].update(games=list(games.values()),completed=count,players=len(players))
+           out.setdefault('updateStatus',{}).update(pendingGames=pending)
+           out['updateStatus']['partial']=bool(pending or out['updateStatus'].get('failures') or out['updateStatus'].get('staleTeams'))
+           assert all(r['id'] in out['reports'] for r in out['records'])
+           assert len({p['id'] for p in out['players']})==len(out['players'])
+           return out
+          if __name__=='__main__':
+           result=merge(json.load(open(sys.argv[1])),json.load(open(sys.argv[2])))
+           with open(sys.argv[3],'w') as f:json.dump(result,f,ensure_ascii=False,separators=(',',':'));f.write('\n')
+          PY
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python "$publish_dir/merge.py" data.json "$publish_dir/candidate.json" "$publish_dir/merged.json"
+            cp "$publish_dir/merged.json" data.json
+            cp data.json "$publish_dir/candidate.json"
+            git add data.json
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m "Actualizar datos de la Serie 65"
+            if git push origin HEAD:main; then exit 0; fi
+            echo "La rama avanzó; recombinando los datos (intento $attempt de 5)"
+            sleep $((attempt * 2))
+          done
+          echo "::error::No se pudo publicar; el avance sigue guardado en caché y en el artefacto"
+          exit 1
