@@ -42,9 +42,11 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: .serie65-progress
-          key: serie65-v2-${{ steps.fecha.outputs.dia }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: serie65-v3-${{ steps.fecha.outputs.dia }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            serie65-v2-${{ steps.fecha.outputs.dia }}-
+            serie65-v3-${{ steps.fecha.outputs.dia }}-
+            serie65-v3-
+            serie65-v2-
 
       - name: Consultar fuentes y actualizar datos
         run: timeout --signal=TERM --kill-after=30s 85m python -u update.py
@@ -54,15 +56,27 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: .serie65-progress
-          key: serie65-v2-${{ steps.fecha.outputs.dia }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: serie65-v3-${{ steps.fecha.outputs.dia }}-${{ github.run_id }}-${{ github.run_attempt }}
 
-      - name: Guardar datos
+      - name: Copia del avance de esta ejecución
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: serie65-progreso-${{ github.run_id }}-${{ github.run_attempt }}
+          path: data.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Guardar datos aunque haya consultas pendientes
+        if: always() && hashFiles('data.json') != ''
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python -c "import json; d=json.load(open(\"data.json\")); assert d[\"schema\"] == 1 and d[\"snapshot\"][\"edition\"] == 65"
           git add data.json
           if git diff --cached --quiet; then
             exit 0
           fi
           git commit -m "Actualizar datos de la Serie 65"
+          git pull --rebase origin main
           git push
