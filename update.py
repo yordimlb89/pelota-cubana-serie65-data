@@ -4,6 +4,7 @@ Rejects other tournaments and incomplete team imports before replacing saved dat
 """
 import copy,signal,concurrent.futures,datetime,gzip,hashlib,json,os,pathlib,re,sys,time,unicodedata,urllib.request
 from lxml import html
+from audit import validate_box,apply_audit
 ROOT=pathlib.Path(__file__).resolve().parent; CACHE=pathlib.Path(os.environ.get('SERIE65_CACHE_DIR', str(ROOT/'.serie65-progress')));CACHE.mkdir(parents=True,exist_ok=True)
 BASE='https://www.beisbolcubano.cu/'; NOW=datetime.datetime.now(datetime.timezone.utc).isoformat()
 USE_CACHE='--cached' in sys.argv
@@ -148,8 +149,8 @@ def box(g):
   return g,saved['structured']
  def validate(d):
   assert g['date'][:4] in plain(d), 'Wrong game season'
-  assert tables(d,game=g), f"Missing boxscore for game {g['number']} ({g['date']})"
- d=fetch('game'+str(g['number'])+'-'+'-'.join(map(str,g['score'])),'estadisticas/BoxScore?idJuego='+str(g['number']),validate=validate)
+  validate_box(g,tables(d,game=g))
+ d=fetch('game'+str(g['number'])+'-'+'-'.join(map(str,g['score'])),'estadisticas/BoxScore?idJuego='+str(g['number']),validate=validate,refresh=not USE_CACHE)
  return g,tables(d,game=g)
 boxes=[]
 # The downloads page is independently checked for the current competition.
@@ -167,6 +168,7 @@ def add(key,title,kind,ts,game=None):
  if game:entry['game']={'teams':[game['awayName'],game['homeName']],'scores':list(map(str,game['score'])),'date':game['date'],'number':str(game['number'])}
  records.append(entry);reports[rid]={'id':rid,'structured':ts,'updatedAt':NOW,'coverage':'Serie 65 · Clasificatoria. Acumulado oficial al '+NOW[:10]+'. No sumar a otras tablas acumuladas.','source':game['source'] if game else BASE+'general/calendario'}
 add('individual','Estadísticas individuales · Serie 65','Estadísticas',merged)
+reports[uid('individual')]['teamUpdatedAt']={code:(previous_data.get('reports',{}).get(uid('individual'),{}).get('teamUpdatedAt',{}).get(code,previous_data.get('reports',{}).get(uid('individual'),{}).get('updatedAt','')) if code in stale_teams else NOW) for code in TEAMS}
 for key,doc_key,title,kind in [('teams','bat','Estadísticas colectivas · Serie 65','Estadísticas'),('standings','standings','Posiciones · Serie 65','Posiciones y resultados')]:
  if doc_key in docs:add(key,title,kind,tables(docs[doc_key]))
  elif uid(key) in previous_data.get('reports',{}):
@@ -212,8 +214,16 @@ for game in finished:
  except Exception as exc:failed(game['id'],exc)
  checkpoint()
 checkpoint(final=True)
-if not failures:(CACHE/'complete').write_text(NOW)
+apply_audit(payload)
+atomic_json(ROOT/'data.json',payload)
+atomic_json(CACHE_ROOT/'checkpoint.json',payload)
+if not payload['updateStatus']['partial']:(CACHE/'complete').write_text(NOW)
 summary={'updatedAt':NOW,'games':len(games),'boxscores':snapshot['completed'],'pending':len(payload['updateStatus']['pendingGames']),'warnings':len(failures),'players':len(players)}
 print(json.dumps(summary),flush=True)
+summary['inconsistentTeams']=payload['verification']['inconsistentTeams']
 if os.environ.get('GITHUB_STEP_SUMMARY'):
  with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write('## Serie 65\n\n'+json.dumps(summary,ensure_ascii=False)+'\n\nLos pendientes se reintentan en la próxima ejecución.\n')
+
+if payload['updateStatus']['partial']:
+ print('::error::Actualización parcial: se preservaron datos válidos; quedan fuentes o balances por verificar.',flush=True)
+ sys.exit(2)
