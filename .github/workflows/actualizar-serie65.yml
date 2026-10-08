@@ -11,6 +11,8 @@ on:
     paths:
       - '.github/workflows/actualizar-serie65.yml'
       - 'update.py'
+      - 'download_pool.py'
+      - 'test_download_pool.py'
       - 'audit.py'
       - 'merge.py'
       - 'test_integrity.py'
@@ -57,7 +59,7 @@ jobs:
             serie65-v2-
 
       - name: Verificar controles de integridad
-        run: python -m unittest -v test_integrity.py
+        run: python -m unittest -v test_integrity.py test_download_pool.py
 
       - name: Consultar fuentes y actualizar datos
         run: |

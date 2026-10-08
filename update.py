@@ -2,9 +2,10 @@
 Requires lxml. Each run rechecks the calendar, team totals and recent games.
 Rejects other tournaments and incomplete team imports before replacing saved data.
 """
-import copy,signal,concurrent.futures,datetime,gzip,hashlib,json,os,pathlib,re,sys,time,unicodedata,urllib.request
+import copy,signal,datetime,gzip,hashlib,json,os,pathlib,re,sys,time,unicodedata,urllib.request
 from lxml import html
 from audit import validate_box,apply_audit
+from download_pool import download_batch,ATTEMPT_TIMEOUTS
 ROOT=pathlib.Path(__file__).resolve().parent; CACHE=pathlib.Path(os.environ.get('SERIE65_CACHE_DIR', str(ROOT/'.serie65-progress')));CACHE.mkdir(parents=True,exist_ok=True)
 BASE='https://www.beisbolcubano.cu/'; NOW=datetime.datetime.now(datetime.timezone.utc).isoformat()
 USE_CACHE='--cached' in sys.argv
@@ -53,11 +54,11 @@ def fetch(key,path,validate=None,refresh=False):
   except (AssertionError,ValueError,html.etree.ParserError) as exc:
    print(f'Discarding invalid saved page {key}: {exc}',flush=True)
    f.unlink()
- for attempt in range(2):
+ for attempt, request_timeout in enumerate(ATTEMPT_TIMEOUTS):
   if STOP or time.monotonic()>=DEADLINE:raise RuntimeError('Time budget reached; retry next run')
   try:
    print(f'Fetching {key}, attempt {attempt+1}/2: {BASE+path}',flush=True)
-   with urllib.request.urlopen(BASE+path,timeout=35) as r:raw=r.read()
+   with urllib.request.urlopen(BASE+path,timeout=request_timeout) as r:raw=r.read()
    d=parse(raw)
    tmp=f.with_suffix('.tmp');tmp.write_bytes(raw);tmp.replace(f)
    return d
@@ -117,9 +118,9 @@ except Exception as exc:
 jobs=[('team-'+code,'estadisticas/estadisticas?eq='+code+'&tipo=1&tab=0') for code in TEAMS]+[('standings','estadisticas/Posiciones.aspx'),('bat','estadisticas/estadisticas?eq=snb&tab=0&tipo=1')]
 docs={};individual=[];stale_teams=[]
 old_individual=previous_data.get('reports',{}).get(uid('individual'),{}).get('structured',[])
-for key,path in jobs:
+for (key,path),doc,error in download_batch(lambda job: fetch(job[0],job[1],refresh=not USE_CACHE),jobs):
  try:
-  doc=fetch(key,path,refresh=not USE_CACHE)
+  if error is not None:raise error
   ts=tables(doc,key[5:] if key.startswith('team-') else None)
   assert ts and all(len(r)==len(t['columns']) for t in ts for r in t['rows']),f'Missing or malformed statistics: {key}'
   if key.startswith('team-'):
@@ -201,11 +202,10 @@ def checkpoint(final=False):
  atomic_json(ROOT/'data.json',payload)
  atomic_json(CACHE_ROOT/'checkpoint.json',payload)
 checkpoint()
-for game in finished:
- if STOP or time.monotonic()>=DEADLINE:
-  failed('remaining-games','Time budget reached; remaining games will resume next run');break
+for game,result,error in download_batch(box,finished):
  try:
-  g,ts=box(game)
+  if error is not None:raise error
+  g,ts=result
   assert ts and all(len(r)==len(t['columns']) for t in ts for r in t['rows']),'Invalid boxscore rows'
   rid=uid('game:'+str(g['number']))
   records[:]=[r for r in records if r['id']!=rid]
