@@ -1,0 +1,44 @@
+name: Actualizar splits Serie 65
+on:
+  schedule:
+    - cron: '0 2,20,22 * * *'
+      timezone: America/New_York
+  workflow_dispatch:
+  push:
+    paths: ['update_splits.py', '.github/workflows/actualizar-splits.yml']
+permissions:
+  contents: write
+concurrency:
+  group: splits-serie65
+  cancel-in-progress: false
+jobs:
+  splits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install lxml
+      - name: Actualizar situaciones oficiales
+        run: python -u update_splits.py
+      - name: Guardar bloques disponibles
+        if: always()
+        run: |
+          test -f splits/65.json || exit 0
+          candidate=$(mktemp)
+          cp splits/65.json "$candidate"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            mkdir -p splits
+            cp "$candidate" splits/65.json
+            git add splits/65.json
+            git diff --cached --quiet && exit 0
+            git commit -m 'Actualizar splits oficiales de la Serie 65'
+            git push origin HEAD:main && exit 0
+          done
+          exit 1
