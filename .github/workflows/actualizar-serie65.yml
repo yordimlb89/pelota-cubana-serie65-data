@@ -110,3 +110,27 @@ jobs:
           done
           echo "::error::No se pudo publicar; el avance sigue guardado en caché y en el artefacto"
           exit 1
+
+      - name: Verificar copia persistente del sitio
+        if: always() && hashFiles('data.json') != ''
+        timeout-minutes: 9
+        run: |
+          python - <<'PY'
+          import json,time,urllib.request
+          from datetime import datetime
+          expected=json.load(open('data.json'))['snapshot']['updatedAt']
+          def stamp(value):return int(datetime.fromisoformat(value.replace('Z','+00:00')).timestamp()*1000)
+          for attempt in range(8):
+              try:
+                  req=urllib.request.Request('https://pelotacubanastats.com/api/storage-status',headers={'User-Agent':'PCUSA-GitHub-Cache/1.0'})
+                  with urllib.request.urlopen(req,timeout=45) as response:
+                      receipt=json.load(response)
+                  stored=receipt.get('serie65') or {}
+                  if receipt.get('persistent') and stamp(stored.get('source_updated_at',''))>=stamp(expected):
+                      print('Serie 65 conservada en D1 y R2:',stored['hash'])
+                      break
+              except Exception as exc:
+                  print('Comprobación pendiente:',type(exc).__name__)
+              if attempt<7:time.sleep(60)
+          else:raise SystemExit('No se pudo confirmar la copia persistente de la versión publicada')
+          PY
