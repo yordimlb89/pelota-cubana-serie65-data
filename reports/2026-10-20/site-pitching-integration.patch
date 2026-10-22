@@ -1,0 +1,1381 @@
+diff --git a/lib/data/serie65-daily-profile-names.json b/lib/data/serie65-daily-profile-names.json
+index df0c7c912..316b4e8bc 100644
+--- a/lib/data/serie65-daily-profile-names.json
++++ b/lib/data/serie65-daily-profile-names.json
+@@ -209,5 +209,6 @@
+   "Abel Bejerano Saavedra": "BEJERANO SAAVEDRA Abel",
+   "Omar Díaz Alfonso": "DÍAZ ALFONSO Omar",
+   "Leandro Suárez Téllez": "SUAREZ TELLEZ, LEANDRO",
+-  "Randy Cueto Pérez": "CUETO PÉREZ Randy"
++  "Randy Cueto Pérez": "CUETO PÉREZ Randy",
++  "Erly Casanova Callaba": "CASANOVA CALLABA Erly"
+ }
+diff --git a/lib/data/serie65-daily.json b/lib/data/serie65-daily.json
+index 94deccf49..4c342fa66 100644
+--- a/lib/data/serie65-daily.json
++++ b/lib/data/serie65-daily.json
+@@ -14,7 +14,8 @@
+     "2026-10-16",
+     "2026-10-17",
+     "2026-10-18",
+-    "2026-10-19"
++    "2026-10-19",
++    "2026-10-20"
+   ],
+   "games": [
+     {
+@@ -2181,26 +2182,26 @@
+     {
+       "number": 102,
+       "dayOrder": 6,
+-      "date": "2026-10-19",
++      "date": "2026-10-20",
+       "subseries": 4,
+-      "attendance": null,
+-      "minutes": null,
+-      "innings": "2.0",
++      "attendance": 1500,
++      "minutes": 182,
++      "innings": "9.0",
+       "teams": {
+         "SSP": {
+-          "runs": 2,
+-          "hits": null,
+-          "errors": null,
+-          "hr": null
++          "runs": 8,
++          "hits": 10,
++          "errors": 0,
++          "hr": 0
+         },
+         "CMG": {
+           "runs": 1,
+-          "hits": null,
+-          "errors": null,
+-          "hr": null
++          "hits": 8,
++          "errors": 3,
++          "hr": 1
+         }
+       },
+-      "status": "sealed"
++      "status": "final"
+     },
+     {
+       "number": 103,
+@@ -2249,6 +2250,198 @@
+         }
+       },
+       "status": "final"
++    },
++    {
++      "number": 105,
++      "dayOrder": 1,
++      "date": "2026-10-20",
++      "subseries": 4,
++      "attendance": 6500,
++      "minutes": 176,
++      "innings": "9.0",
++      "teams": {
++        "IND": {
++          "runs": 2,
++          "hits": 7,
++          "errors": 0,
++          "hr": 1
++        },
++        "PRI": {
++          "runs": 5,
++          "hits": 11,
++          "errors": 0,
++          "hr": 0
++        }
++      },
++      "status": "final"
++    },
++    {
++      "number": 106,
++      "dayOrder": 2,
++      "date": "2026-10-20",
++      "subseries": 4,
++      "attendance": 781,
++      "minutes": 176,
++      "innings": "9.0",
++      "teams": {
++        "ART": {
++          "runs": 4,
++          "hits": 11,
++          "errors": 1,
++          "hr": 0
++        },
++        "IJV": {
++          "runs": 2,
++          "hits": 12,
++          "errors": 3,
++          "hr": 0
++        }
++      },
++      "status": "final"
++    },
++    {
++      "number": 107,
++      "dayOrder": 3,
++      "date": "2026-10-20",
++      "subseries": 4,
++      "attendance": null,
++      "minutes": null,
++      "innings": "",
++      "teams": {
++        "MTZ": {
++          "runs": null,
++          "hits": null,
++          "errors": null,
++          "hr": null
++        },
++        "CFG": {
++          "runs": null,
++          "hits": null,
++          "errors": null,
++          "hr": null
++        }
++      },
++      "status": "not-played"
++    },
++    {
++      "number": 108,
++      "dayOrder": 4,
++      "date": "2026-10-20",
++      "subseries": 4,
++      "attendance": null,
++      "minutes": null,
++      "innings": "",
++      "teams": {
++        "MAY": {
++          "runs": null,
++          "hits": null,
++          "errors": null,
++          "hr": null
++        },
++        "VCL": {
++          "runs": null,
++          "hits": null,
++          "errors": null,
++          "hr": null
++        }
++      },
++      "status": "sealed"
++    },
++    {
++      "number": 109,
++      "dayOrder": 5,
++      "date": "2026-10-20",
++      "subseries": 4,
++      "attendance": 3100,
++      "minutes": 183,
++      "innings": "9.0",
++      "teams": {
++        "LTU": {
++          "runs": 6,
++          "hits": 14,
++          "errors": 1,
++          "hr": 1
++        },
++        "CAV": {
++          "runs": 5,
++          "hits": 9,
++          "errors": 0,
++          "hr": 0
++        }
++      },
++      "status": "final"
++    },
++    {
++      "number": 110,
++      "dayOrder": 7,
++      "date": "2026-10-20",
++      "subseries": 4,
++      "attendance": 1500,
++      "minutes": 105,
++      "innings": "7.0",
++      "teams": {
++        "SSP": {
++          "runs": 0,
++          "hits": 3,
++          "errors": 1,
++          "hr": 0
++        },
++        "CMG": {
++          "runs": 8,
++          "hits": 12,
++          "errors": 0,
++          "hr": 2
++        }
++      },
++      "status": "final"
++    },
++    {
++      "number": 111,
++      "dayOrder": 8,
++      "date": "2026-10-20",
++      "subseries": 4,
++      "attendance": 1500,
++      "minutes": 170,
++      "innings": "9.0",
++      "teams": {
++        "HOL": {
++          "runs": 3,
++          "hits": 5,
++          "errors": 1,
++          "hr": 0
++        },
++        "GRA": {
++          "runs": 8,
++          "hits": 6,
++          "errors": 1,
++          "hr": 0
++        }
++      },
++      "status": "final"
++    },
++    {
++      "number": 112,
++      "dayOrder": 9,
++      "date": "2026-10-20",
++      "subseries": 4,
++      "attendance": 2500,
++      "minutes": 221,
++      "innings": "9.0",
++      "teams": {
++        "SCU": {
++          "runs": 8,
++          "hits": 11,
++          "errors": 3,
++          "hr": 1
++        },
++        "GTM": {
++          "runs": 10,
++          "hits": 12,
++          "errors": 1,
++          "hr": 2
++        }
++      },
++      "status": "final"
+     }
+   ],
+   "pitches": [
+@@ -8811,48 +9004,488 @@
+       "date": "2026-10-19",
+       "pitches": 92,
+       "decision": "G"
+-    }
+-  ],
+-  "probables": [
++    },
+     {
+-      "game": 9,
++      "gameNumber": 106,
+       "team": "IJV",
+-      "name": "Javier Leyva Naranjo",
+-      "reportedAt": "2026-10-04"
++      "name": "Yadier Garay Rosabal",
++      "rawName": "YADIER GARAY ROSABAL",
++      "number": 18,
++      "date": "2026-10-20",
++      "pitches": 13,
++      "decision": ""
+     },
+     {
+-      "game": 10,
+-      "team": "PRI",
+-      "name": "Genier Álvarez Camejo",
+-      "reportedAt": "2026-10-04"
++      "gameNumber": 106,
++      "team": "IJV",
++      "name": "Roberto Rodríguez Diaz",
++      "rawName": "ROBERTO RODRÍGUEZ DÍAZ",
++      "number": 37,
++      "date": "2026-10-20",
++      "pitches": 51,
++      "decision": "P"
+     },
+     {
+-      "game": 10,
+-      "team": "IND",
+-      "name": "Remberto Barreto",
+-      "reportedAt": "2026-10-04"
++      "gameNumber": 106,
++      "team": "IJV",
++      "name": "Dairon Solórzano Suárez",
++      "rawName": "DAIRON SOLÓRZANO SUÁREZ",
++      "number": 39,
++      "date": "2026-10-20",
++      "pitches": 39,
++      "decision": ""
+     },
+     {
+-      "game": 11,
+-      "team": "MAY",
+-      "name": "José Ignacio Bermúdez García",
+-      "reportedAt": "2026-10-04"
++      "gameNumber": 105,
++      "team": "PRI",
++      "name": "Erly Casanova Callaba",
++      "rawName": "ERLY CASANOVA CALLABA",
++      "number": 52,
++      "date": "2026-10-20",
++      "pitches": 25,
++      "decision": "G"
+     },
+     {
+-      "game": 11,
+-      "team": "VCL",
+-      "name": "Raidel Alfonso Martínez",
+-      "reportedAt": "2026-10-04"
++      "gameNumber": 105,
++      "team": "PRI",
++      "name": "Frank Abel Álvarez Díaz",
++      "rawName": "FRANK ABEL ÁLVAREZ DÍAZ",
++      "number": 22,
++      "date": "2026-10-20",
++      "pitches": 13,
++      "decision": "S"
+     },
+     {
+-      "game": 12,
+-      "team": "MTZ",
+-      "name": "Briam Alejandro Reyes Cedeño",
+-      "reportedAt": "2026-10-04"
++      "gameNumber": 105,
++      "team": "PRI",
++      "name": "Frank Denis Blanco González",
++      "rawName": "FRANK DENIS BLANCO GONZALEZ",
++      "number": 62,
++      "date": "2026-10-20",
++      "pitches": 88,
++      "decision": ""
+     },
+     {
+-      "game": 12,
+-      "team": "CFG",
++      "gameNumber": 105,
++      "team": "IND",
++      "name": "Raymond Figueredo Crúz",
++      "rawName": "RAYMOND FIGUEREDO CRUZ",
++      "number": 48,
++      "date": "2026-10-20",
++      "pitches": 101,
++      "decision": ""
++    },
++    {
++      "gameNumber": 105,
++      "team": "IND",
++      "name": "Reemberto Barreto Grave de Peralta",
++      "rawName": "REMBERTO BARRETO GRAVE DE PERALTA",
++      "number": 98,
++      "date": "2026-10-20",
++      "pitches": 10,
++      "decision": "P"
++    },
++    {
++      "gameNumber": 105,
++      "team": "IND",
++      "name": "Lee Andy Plumas Portomeñe",
++      "rawName": "LEE ANDY PLUMAS PORTOMEÑE",
++      "number": 3,
++      "date": "2026-10-20",
++      "pitches": 21,
++      "decision": ""
++    },
++    {
++      "gameNumber": 108,
++      "team": "VCL",
++      "name": "Christian Rojas Leiva",
++      "rawName": "CRISTIAN ROJAS LEIVA",
++      "number": 96,
++      "date": "2026-10-20",
++      "pitches": 9,
++      "decision": ""
++    },
++    {
++      "gameNumber": 102,
++      "team": "SSP",
++      "name": "José Isais Grandales Rodríguez",
++      "rawName": "José Grandales Rodríguez",
++      "number": 95,
++      "date": "2026-10-20",
++      "pitches": 80,
++      "decision": "G"
++    },
++    {
++      "gameNumber": 102,
++      "team": "SSP",
++      "name": "Yaniesky Duardo Rojas",
++      "rawName": "Yaniesky Duardo Rojas",
++      "number": 27,
++      "date": "2026-10-20",
++      "pitches": 19,
++      "decision": "S"
++    },
++    {
++      "gameNumber": 110,
++      "team": "SSP",
++      "name": "José Eduardo Santos Escalantes",
++      "rawName": "José Eduardo Santos Escalante",
++      "number": 35,
++      "date": "2026-10-20",
++      "pitches": 53,
++      "decision": "P"
++    },
++    {
++      "gameNumber": 110,
++      "team": "SSP",
++      "name": "Briant José Canino Rodríguez",
++      "rawName": "BRAYAN CANINO RODRÍGUEZ",
++      "number": 40,
++      "date": "2026-10-20",
++      "pitches": 29,
++      "decision": ""
++    },
++    {
++      "gameNumber": 110,
++      "team": "SSP",
++      "name": "Reicher Gómez Delgado",
++      "rawName": "Reicher Gómez Delgado",
++      "number": 21,
++      "date": "2026-10-20",
++      "pitches": 24,
++      "decision": ""
++    },
++    {
++      "gameNumber": 109,
++      "team": "LTU",
++      "name": "Alberto Pablo Civil Jr. Hidalgo",
++      "rawName": "Alberto Pablo Civil Jr. Hidalgo",
++      "number": 23,
++      "date": "2026-10-20",
++      "pitches": 6,
++      "decision": "S"
++    },
++    {
++      "gameNumber": 109,
++      "team": "LTU",
++      "name": "Keniel Ferráz Pérez",
++      "rawName": "Keniel Ferráz Pérez",
++      "number": 82,
++      "date": "2026-10-20",
++      "pitches": 73,
++      "decision": "G"
++    },
++    {
++      "gameNumber": 109,
++      "team": "LTU",
++      "name": "Eliander Bravo Velázquez",
++      "rawName": "Eliander Bravo Velázquez",
++      "number": 71,
++      "date": "2026-10-20",
++      "pitches": 107,
++      "decision": ""
++    },
++    {
++      "gameNumber": 111,
++      "team": "HOL",
++      "name": "Jesús Enrique Pérez Riverón",
++      "rawName": "JESUS ENRIQUE PEREZ RIVERÓN",
++      "number": 9,
++      "date": "2026-10-20",
++      "pitches": 53,
++      "decision": "P"
++    },
++    {
++      "gameNumber": 111,
++      "team": "HOL",
++      "name": "Orleidis Cuba Cardoza",
++      "rawName": "ORLEIDIS CUBA CARDOZA",
++      "number": 27,
++      "date": "2026-10-20",
++      "pitches": 27,
++      "decision": ""
++    },
++    {
++      "gameNumber": 111,
++      "team": "HOL",
++      "name": "Ramiro Rodríguez Rondón",
++      "rawName": "RAMIRO RODRIGUEZ RONDÓN",
++      "number": 92,
++      "date": "2026-10-20",
++      "pitches": 39,
++      "decision": ""
++    },
++    {
++      "gameNumber": 111,
++      "team": "GRA",
++      "name": "Juan Danilo Pérez Meriño",
++      "rawName": "JUAN DANILO PÉREZ MERIÑO",
++      "number": 27,
++      "date": "2026-10-20",
++      "pitches": 19,
++      "decision": ""
++    },
++    {
++      "gameNumber": 111,
++      "team": "GRA",
++      "name": "José Antonio Rodríguez Torres",
++      "rawName": "JOSÉ ANTONIO RODRÍGUEZ TORRES",
++      "number": 29,
++      "date": "2026-10-20",
++      "pitches": 106,
++      "decision": "G"
++    },
++    {
++      "gameNumber": 112,
++      "team": "GTM",
++      "name": "Enyer Fernández Favier",
++      "rawName": "ENYER FERNÁNDEZ FAVIER",
++      "number": 25,
++      "date": "2026-10-20",
++      "pitches": 113,
++      "decision": ""
++    },
++    {
++      "gameNumber": 112,
++      "team": "GTM",
++      "name": "Damián Bello Lescay",
++      "rawName": "DAMIAN BELLO LESCAY",
++      "number": 99,
++      "date": "2026-10-20",
++      "pitches": 7,
++      "decision": ""
++    },
++    {
++      "gameNumber": 112,
++      "team": "GTM",
++      "name": "Ronielkis Ferrand Castañeda",
++      "rawName": "RONIELKIS FERRAND CASTAÑEDA",
++      "number": 49,
++      "date": "2026-10-20",
++      "pitches": 22,
++      "decision": "G"
++    },
++    {
++      "gameNumber": 112,
++      "team": "GTM",
++      "name": "Yoan Carlos Carcasés López",
++      "rawName": "YOAN CARLOS CARCASÉS LÓPEZ",
++      "number": 92,
++      "date": "2026-10-20",
++      "pitches": 3,
++      "decision": "S"
++    },
++    {
++      "gameNumber": 112,
++      "team": "SCU",
++      "name": "Osvaldo Acuña Cortina",
++      "rawName": "Osvaldo Acuña Cortina",
++      "number": 14,
++      "date": "2026-10-20",
++      "pitches": 37,
++      "decision": ""
++    },
++    {
++      "gameNumber": 112,
++      "team": "SCU",
++      "name": "Osmel Valdés García",
++      "rawName": "OSMEL VALDÉS GARCÍA",
++      "number": 45,
++      "date": "2026-10-20",
++      "pitches": 6,
++      "decision": ""
++    },
++    {
++      "gameNumber": 112,
++      "team": "SCU",
++      "name": "José Carlos Barbosa Gómez",
++      "rawName": "José Carlos Barbosa Gomez",
++      "number": 87,
++      "date": "2026-10-20",
++      "pitches": 25,
++      "decision": ""
++    },
++    {
++      "gameNumber": 112,
++      "team": "SCU",
++      "name": "Kevín Corneaux Font",
++      "rawName": "Kevin Curnow Fons",
++      "number": 61,
++      "date": "2026-10-20",
++      "pitches": 41,
++      "decision": ""
++    },
++    {
++      "gameNumber": 112,
++      "team": "SCU",
++      "name": "Rafael Luís Castillo Donatien",
++      "rawName": "Rafael  Castillo Donatien",
++      "number": 23,
++      "date": "2026-10-20",
++      "pitches": 22,
++      "decision": "P"
++    },
++    {
++      "gameNumber": 112,
++      "team": "SCU",
++      "name": "Luís Enrique Castillo Muñoz",
++      "rawName": "Luis Enrique Castillo Muñoz",
++      "number": 47,
++      "date": "2026-10-20",
++      "pitches": 14,
++      "decision": ""
++    },
++    {
++      "gameNumber": 106,
++      "team": "ART",
++      "name": "José Ángel García Sánchez",
++      "rawName": "José Ángel García Sánchez",
++      "number": 99,
++      "date": "2026-10-20",
++      "pitches": 4,
++      "decision": "S"
++    },
++    {
++      "gameNumber": 106,
++      "team": "ART",
++      "name": "Israel Sánchez Cuesta",
++      "rawName": "Israel Sánchez Cuesta",
++      "number": 26,
++      "date": "2026-10-20",
++      "pitches": 56,
++      "decision": ""
++    },
++    {
++      "gameNumber": 106,
++      "team": "ART",
++      "name": "Andy Luis Pérez Ortiz",
++      "rawName": "Andy Luis Pérez Ortiz",
++      "number": 29,
++      "date": "2026-10-20",
++      "pitches": 87,
++      "decision": "P"
++    },
++    {
++      "gameNumber": 110,
++      "team": "CMG",
++      "name": "Riquelme Odelín Jr. Marrero",
++      "rawName": "RIQUELME ODELIN MARRERO",
++      "number": 23,
++      "date": "2026-10-20",
++      "pitches": 98,
++      "decision": "G"
++    },
++    {
++      "gameNumber": 102,
++      "team": "CMG",
++      "name": "Yonimiller Mendoza Hernández",
++      "rawName": "YONIMILLER MENDOZA HERNANDEZ",
++      "number": 17,
++      "date": "2026-10-20",
++      "pitches": 32,
++      "decision": ""
++    },
++    {
++      "gameNumber": 102,
++      "team": "CMG",
++      "name": "Dayan Navas Calvo",
++      "rawName": "DAYAN NAVAS CALVO",
++      "number": 40,
++      "date": "2026-10-20",
++      "pitches": 33,
++      "decision": ""
++    },
++    {
++      "gameNumber": 102,
++      "team": "CMG",
++      "name": "Abel Bejerano Saavedra",
++      "rawName": "ABEL BEJARANO SAAVEDRA",
++      "number": 69,
++      "date": "2026-10-20",
++      "pitches": 9,
++      "decision": ""
++    },
++    {
++      "gameNumber": 102,
++      "team": "CMG",
++      "name": "Raidel Rodríguez Trujillo",
++      "rawName": "RAIDEL RODRIGUEZ TRUJILLO",
++      "number": 43,
++      "date": "2026-10-20",
++      "pitches": 43,
++      "decision": ""
++    },
++    {
++      "gameNumber": 109,
++      "team": "CAV",
++      "name": "Juan Grabiel Jova Piñeiro",
++      "rawName": "JUAN GRABIEL JOVA PIÑEIRO",
++      "number": 52,
++      "date": "2026-10-20",
++      "pitches": 24,
++      "decision": ""
++    },
++    {
++      "gameNumber": 109,
++      "team": "CAV",
++      "name": "Yonny Montero Rivera",
++      "rawName": "YONNY MONTERO RIVERA",
++      "number": 44,
++      "date": "2026-10-20",
++      "pitches": 102,
++      "decision": "P"
++    },
++    {
++      "gameNumber": 109,
++      "team": "CAV",
++      "name": "Sandro Zaldivar Sutil",
++      "rawName": "SANDRO SALDIVAR SUTIL",
++      "number": 97,
++      "date": "2026-10-20",
++      "pitches": 11,
++      "decision": ""
++    }
++  ],
++  "probables": [
++    {
++      "game": 9,
++      "team": "IJV",
++      "name": "Javier Leyva Naranjo",
++      "reportedAt": "2026-10-04"
++    },
++    {
++      "game": 10,
++      "team": "PRI",
++      "name": "Genier Álvarez Camejo",
++      "reportedAt": "2026-10-04"
++    },
++    {
++      "game": 10,
++      "team": "IND",
++      "name": "Remberto Barreto",
++      "reportedAt": "2026-10-04"
++    },
++    {
++      "game": 11,
++      "team": "MAY",
++      "name": "José Ignacio Bermúdez García",
++      "reportedAt": "2026-10-04"
++    },
++    {
++      "game": 11,
++      "team": "VCL",
++      "name": "Raidel Alfonso Martínez",
++      "reportedAt": "2026-10-04"
++    },
++    {
++      "game": 12,
++      "team": "MTZ",
++      "name": "Briam Alejandro Reyes Cedeño",
++      "reportedAt": "2026-10-04"
++    },
++    {
++      "game": 12,
++      "team": "CFG",
+       "name": "Alex Daniel Pérez Ramos",
+       "reportedAt": "2026-10-04"
+     },
+@@ -9931,57 +10564,141 @@
+       "reportedAt": "2026-10-19"
+     },
+     {
+-      "game": 107,
+-      "team": "MTZ",
+-      "name": "Renner Rivero Estrada",
+-      "reportedAt": "2026-10-19"
++      "game": 107,
++      "team": "MTZ",
++      "name": "Renner Rivero Estrada",
++      "reportedAt": "2026-10-20"
++    },
++    {
++      "game": 107,
++      "team": "CFG",
++      "name": "Pablo Enrique Ruíz Parapar",
++      "reportedAt": "2026-10-20"
++    },
++    {
++      "game": 109,
++      "team": "LTU",
++      "name": "Eliander Bravo Velázquez",
++      "reportedAt": "2026-10-19"
++    },
++    {
++      "game": 111,
++      "team": "HOL",
++      "name": "Jesús Enrique Pérez Riverón",
++      "reportedAt": "2026-10-19"
++    },
++    {
++      "game": 111,
++      "team": "GRA",
++      "name": "José Antonio Rodríguez Torres",
++      "reportedAt": "2026-10-19"
++    },
++    {
++      "game": 112,
++      "team": "GTM",
++      "name": "Enyer Fernández Favier",
++      "reportedAt": "2026-10-19"
++    },
++    {
++      "game": 112,
++      "team": "SCU",
++      "name": "José Carlos Barbosa Gómez",
++      "reportedAt": "2026-10-19"
++    },
++    {
++      "game": 106,
++      "team": "ART",
++      "name": "Andy Luis Pérez Ortiz",
++      "reportedAt": "2026-10-19"
++    },
++    {
++      "game": 109,
++      "team": "CAV",
++      "name": "Yonny Montero Rivera",
++      "reportedAt": "2026-10-19"
++    },
++    {
++      "game": 114,
++      "team": "IJV",
++      "name": "Sair Sánchez Ochoa",
++      "reportedAt": "2026-10-20"
++    },
++    {
++      "game": 113,
++      "team": "PRI",
++      "name": "Genier Álvarez Camejo",
++      "reportedAt": "2026-10-20"
++    },
++    {
++      "game": 113,
++      "team": "IND",
++      "name": "Andy Vargas Lezcaille",
++      "reportedAt": "2026-10-20"
+     },
+     {
+-      "game": 107,
+-      "team": "CFG",
+-      "name": "Pablo Enrique Ruíz Parapar",
+-      "reportedAt": "2026-10-19"
++      "game": 118,
++      "team": "SSP",
++      "name": "Alex Daniel Guerra Garcé",
++      "reportedAt": "2026-10-20"
+     },
+     {
+-      "game": 109,
++      "game": 117,
+       "team": "LTU",
+-      "name": "Eliander Bravo Velázquez",
+-      "reportedAt": "2026-10-19"
++      "name": "Eldi Jines Velázquez Tamargo",
++      "reportedAt": "2026-10-20"
+     },
+     {
+-      "game": 111,
++      "game": 119,
+       "team": "HOL",
+-      "name": "Jesús Enrique Pérez Riverón",
+-      "reportedAt": "2026-10-19"
++      "name": "Wilson Paredes Céspedes",
++      "reportedAt": "2026-10-20"
+     },
+     {
+-      "game": 111,
++      "game": 119,
+       "team": "GRA",
+-      "name": "José Antonio Rodríguez Torres",
+-      "reportedAt": "2026-10-19"
++      "name": "Yoel Mojena Machado",
++      "reportedAt": "2026-10-20"
+     },
+     {
+-      "game": 112,
++      "game": 120,
+       "team": "GTM",
+-      "name": "Enyer Fernández Favier",
+-      "reportedAt": "2026-10-19"
++      "name": "Oriolvis Cobas Leliebre",
++      "reportedAt": "2026-10-20"
+     },
+     {
+-      "game": 112,
++      "game": 120,
+       "team": "SCU",
+-      "name": "José Carlos Barbosa Gómez",
+-      "reportedAt": "2026-10-19"
++      "name": "Yosmel Garcés Herrera",
++      "reportedAt": "2026-10-20"
+     },
+     {
+-      "game": 106,
++      "game": 114,
+       "team": "ART",
+-      "name": "Andy Luis Pérez Ortiz",
+-      "reportedAt": "2026-10-19"
++      "name": "Daniel Alejandro García García",
++      "reportedAt": "2026-10-20"
+     },
+     {
+-      "game": 109,
++      "game": 118,
++      "team": "CMG",
++      "name": "Albert Valladares Sánchez",
++      "reportedAt": "2026-10-20"
++    },
++    {
++      "game": 117,
+       "team": "CAV",
+-      "name": "Yonny Montero Rivera",
++      "name": "Yoan Carlos Díaz Agramonte",
++      "reportedAt": "2026-10-20"
++    },
++    {
++      "game": 107,
++      "team": "MTZ",
++      "name": "Renner Rivero Estrada",
++      "reportedAt": "2026-10-19"
++    },
++    {
++      "game": 107,
++      "team": "CFG",
++      "name": "Pablo Enrique Ruíz Parapar",
+       "reportedAt": "2026-10-19"
+     }
+   ],
+@@ -10057,6 +10774,16 @@
+       "file": "PARTE No 14.xls",
+       "sha256": "efb7852b60c37444252496d5efd00393391c86160f35358c737ad116a5ec2087",
+       "date": "2026-10-19"
++    },
++    {
++      "file": "PARTE No 15.xls",
++      "sha256": "7be6a81b3df27bf23c8175784129d638fe540e1e3f91163e4c8f1b4da58e1e3c",
++      "date": "2026-10-20",
++      "pitchSince": "2026-10-20",
++      "reviewedSealedGames": [
++        108
++      ],
++      "note": "Seven complete results reconcile to 70 runs, 131 hits and 15 errors. Game 108 sealed identified by Villa Clara October 20 workload (Christian Rojas, 9 pitches); game 107 unplayed. MAY sheet ends October 16, prior October 17 coverage retained; MTZ/CFG end October 19. Game 106 boxscore includes Omar Sains without workload in this workbook. Andy Luis Perez decision printed P conflicts with ART victory; preserved as printed. Only October 20 workloads imported; earlier reviewed sessions retained."
+     }
+   ],
+   "incidents": {
+@@ -10115,25 +10842,29 @@
+     "2026-10-19": {
+       "sealed": 1,
+       "notPlayed": 2
++    },
++    "2026-10-20": {
++      "sealed": 1,
++      "notPlayed": 1
+     }
+   },
+   "teamUpdatedAt": {
+-    "IJV": "2026-10-17",
+-    "PRI": "2026-10-17",
+-    "IND": "2026-10-17",
++    "IJV": "2026-10-20",
++    "PRI": "2026-10-20",
++    "IND": "2026-10-20",
+     "MAY": "2026-10-17",
+-    "VCL": "2026-10-17",
++    "VCL": "2026-10-20",
+     "MTZ": "2026-10-19",
+     "CFG": "2026-10-19",
+-    "SSP": "2026-10-19",
+-    "LTU": "2026-10-19",
+-    "HOL": "2026-10-19",
+-    "GRA": "2026-10-19",
+-    "GTM": "2026-10-19",
+-    "SCU": "2026-10-19",
+-    "ART": "2026-10-17",
+-    "CMG": "2026-10-19",
+-    "CAV": "2026-10-19"
++    "SSP": "2026-10-20",
++    "LTU": "2026-10-20",
++    "HOL": "2026-10-20",
++    "GRA": "2026-10-20",
++    "GTM": "2026-10-20",
++    "SCU": "2026-10-20",
++    "ART": "2026-10-20",
++    "CMG": "2026-10-20",
++    "CAV": "2026-10-20"
+   },
+   "gameSessions": [
+     {
+@@ -12464,24 +13195,240 @@
+         }
+       },
+       "status": "final"
++    },
++    {
++      "number": 105,
++      "dayOrder": 1,
++      "date": "2026-10-20",
++      "subseries": 4,
++      "attendance": 6500,
++      "minutes": 176,
++      "innings": "9.0",
++      "teams": {
++        "IND": {
++          "runs": 2,
++          "hits": 7,
++          "errors": 0,
++          "hr": 1
++        },
++        "PRI": {
++          "runs": 5,
++          "hits": 11,
++          "errors": 0,
++          "hr": 0
++        }
++      },
++      "status": "final"
++    },
++    {
++      "number": 106,
++      "dayOrder": 2,
++      "date": "2026-10-20",
++      "subseries": 4,
++      "attendance": 781,
++      "minutes": 176,
++      "innings": "9.0",
++      "teams": {
++        "ART": {
++          "runs": 4,
++          "hits": 11,
++          "errors": 1,
++          "hr": 0
++        },
++        "IJV": {
++          "runs": 2,
++          "hits": 12,
++          "errors": 3,
++          "hr": 0
++        }
++      },
++      "status": "final"
++    },
++    {
++      "number": 107,
++      "dayOrder": 3,
++      "date": "2026-10-20",
++      "subseries": 4,
++      "attendance": null,
++      "minutes": null,
++      "innings": "",
++      "teams": {
++        "MTZ": {
++          "runs": null,
++          "hits": null,
++          "errors": null,
++          "hr": null
++        },
++        "CFG": {
++          "runs": null,
++          "hits": null,
++          "errors": null,
++          "hr": null
++        }
++      },
++      "status": "not-played"
++    },
++    {
++      "number": 108,
++      "dayOrder": 4,
++      "date": "2026-10-20",
++      "subseries": 4,
++      "attendance": null,
++      "minutes": null,
++      "innings": "",
++      "teams": {
++        "MAY": {
++          "runs": null,
++          "hits": null,
++          "errors": null,
++          "hr": null
++        },
++        "VCL": {
++          "runs": null,
++          "hits": null,
++          "errors": null,
++          "hr": null
++        }
++      },
++      "status": "sealed"
++    },
++    {
++      "number": 109,
++      "dayOrder": 5,
++      "date": "2026-10-20",
++      "subseries": 4,
++      "attendance": 3100,
++      "minutes": 183,
++      "innings": "9.0",
++      "teams": {
++        "LTU": {
++          "runs": 6,
++          "hits": 14,
++          "errors": 1,
++          "hr": 1
++        },
++        "CAV": {
++          "runs": 5,
++          "hits": 9,
++          "errors": 0,
++          "hr": 0
++        }
++      },
++      "status": "final"
++    },
++    {
++      "number": 102,
++      "dayOrder": 6,
++      "date": "2026-10-20",
++      "subseries": 4,
++      "attendance": 1500,
++      "minutes": 182,
++      "innings": "9.0",
++      "teams": {
++        "SSP": {
++          "runs": 8,
++          "hits": 10,
++          "errors": 0,
++          "hr": 0
++        },
++        "CMG": {
++          "runs": 1,
++          "hits": 8,
++          "errors": 3,
++          "hr": 1
++        }
++      },
++      "status": "final"
++    },
++    {
++      "number": 110,
++      "dayOrder": 7,
++      "date": "2026-10-20",
++      "subseries": 4,
++      "attendance": 1500,
++      "minutes": 105,
++      "innings": "7.0",
++      "teams": {
++        "SSP": {
++          "runs": 0,
++          "hits": 3,
++          "errors": 1,
++          "hr": 0
++        },
++        "CMG": {
++          "runs": 8,
++          "hits": 12,
++          "errors": 0,
++          "hr": 2
++        }
++      },
++      "status": "final"
++    },
++    {
++      "number": 111,
++      "dayOrder": 8,
++      "date": "2026-10-20",
++      "subseries": 4,
++      "attendance": 1500,
++      "minutes": 170,
++      "innings": "9.0",
++      "teams": {
++        "HOL": {
++          "runs": 3,
++          "hits": 5,
++          "errors": 1,
++          "hr": 0
++        },
++        "GRA": {
++          "runs": 8,
++          "hits": 6,
++          "errors": 1,
++          "hr": 0
++        }
++      },
++      "status": "final"
++    },
++    {
++      "number": 112,
++      "dayOrder": 9,
++      "date": "2026-10-20",
++      "subseries": 4,
++      "attendance": 2500,
++      "minutes": 221,
++      "innings": "9.0",
++      "teams": {
++        "SCU": {
++          "runs": 8,
++          "hits": 11,
++          "errors": 3,
++          "hr": 1
++        },
++        "GTM": {
++          "runs": 10,
++          "hits": 12,
++          "errors": 1,
++          "hr": 2
++        }
++      },
++      "status": "final"
+     }
+   ],
+   "teamReceivedAt": {
+-    "IJV": "2026-10-19",
+-    "PRI": "2026-10-19",
+-    "IND": "2026-10-19",
+-    "MAY": "2026-10-19",
+-    "VCL": "2026-10-19",
+-    "MTZ": "2026-10-19",
+-    "CFG": "2026-10-19",
+-    "SSP": "2026-10-19",
+-    "LTU": "2026-10-19",
+-    "HOL": "2026-10-19",
+-    "GRA": "2026-10-19",
+-    "GTM": "2026-10-19",
+-    "SCU": "2026-10-19",
+-    "ART": "2026-10-19",
+-    "CMG": "2026-10-19",
+-    "CAV": "2026-10-19"
++    "IJV": "2026-10-20",
++    "PRI": "2026-10-20",
++    "IND": "2026-10-20",
++    "MAY": "2026-10-20",
++    "VCL": "2026-10-20",
++    "MTZ": "2026-10-20",
++    "CFG": "2026-10-20",
++    "SSP": "2026-10-20",
++    "LTU": "2026-10-20",
++    "HOL": "2026-10-20",
++    "GRA": "2026-10-20",
++    "GTM": "2026-10-20",
++    "SCU": "2026-10-20",
++    "ART": "2026-10-20",
++    "CMG": "2026-10-20",
++    "CAV": "2026-10-20"
+   }
+ }
+diff --git a/scripts/import-serie65-daily.py b/scripts/import-serie65-daily.py
+index e58685cfe..7749dff3b 100644
+--- a/scripts/import-serie65-daily.py
++++ b/scripts/import-serie65-daily.py
+@@ -4,9 +4,10 @@ from pathlib import Path
+ from datetime import date,timedelta
+ import xlrd
+ root=Path(__file__).resolve().parents[1]
+-parser=argparse.ArgumentParser();parser.add_argument('--pitch-start',default='2026-10-04');parser.add_argument('--pitch-start-team',action='append',default=[],metavar='TEAM=YYYY-MM-DD');parser.add_argument('--date',help='Verified actual play date for a postponed game');parser.add_argument('--results-only',action='store_true',help='Import results without advancing stale pitching sheets or announcements');parser.add_argument('files',nargs='+');args=parser.parse_args()
++parser=argparse.ArgumentParser();parser.add_argument('--pitch-start',default='2026-10-04');parser.add_argument('--pitch-start-team',action='append',default=[],metavar='TEAM=YYYY-MM-DD');parser.add_argument('--date',help='Verified actual play date for a postponed game');parser.add_argument('--results-only',action='store_true',help='Import results without advancing stale pitching sheets or announcements');parser.add_argument('--probable-game',action='append',default=[],metavar='TEAM=NUMBER',help='Reviewed next game when postponements change the calendar');parser.add_argument('--pitch-since',help='Only import workloads on or after this verified date');parser.add_argument('--sealed-game',action='append',type=int,default=[],help='Reviewed sealed game number when scores are blank');parser.add_argument('files',nargs='+');args=parser.parse_args()
+ if args.date:date.fromisoformat(args.date)
+ pitch_start=date.fromisoformat(args.pitch_start)
++probable_games={t:int(n) for t,n in (v.split('=',1) for v in args.probable_game)}
+ team_starts={t:date.fromisoformat(d) for t,d in (v.split('=',1) for v in args.pitch_start_team)}
+ def key(s): return re.sub(r'[^a-z0-9 ]','',unicodedata.normalize('NFD',str(s)).encode('ascii','ignore').decode().lower()).split()
+ snapshot=json.loads((root/'lib/data/serie65.json').read_text()); schedule={g['number']:g for g in snapshot['games']}
+@@ -25,7 +26,7 @@ sessions={(g['number'],g['date']):copy.deepcopy(g) for g in data.get('gameSessio
+ for p in data['pitches']:
+     candidates=[g for g in games.values() if g['date']==p['date'] and p['team'] in g['teams'] and g['teams'][p['team']]['runs'] is not None]
+     if 'gameNumber' not in p:p['gameNumber']=candidates[0]['number'] if len(candidates)==1 else None
+-pitches={(p['team'],p['name'],p['date'],p['gameNumber']):p for p in data['pitches']}; prob={(p['game'],p['team']):p for p in data['probables']}
++pitches={(p['team'],p['name'],p['date'],p['gameNumber']):p for p in data['pitches']}; prob={(p['game'],p['team'],p['reportedAt']):p for p in data['probables']}
+ for filename in args.files:
+     book=xlrd.open_workbook(filename); sh=book.sheet_by_name('Parte'); game_rows=[r for r in range(sh.nrows-1) if isinstance(sh.cell_value(r,0),(float,int)) and str(sh.cell_value(r,2)).strip() in rosters]; nums=[int(sh.cell_value(r,0)) for r in game_rows]; day=args.date or schedule[nums[0]]['date']; sub=int(re.search(r'N[º°.]?\s*(\d+)',sh.cell_value(5,1)).group(1)); data['days']=sorted(set(data['days']+[day]))
+     def incident(label):
+@@ -38,6 +39,7 @@ for filename in args.files:
+         games[n]={'number':n,'dayOrder':game_rows.index(r)+1,'date':day,'subseries':sub,'attendance':num(r,7),'minutes':round(sh.cell_value(r,8)*1440) if isinstance(sh.cell_value(r,8),(float,int)) and 0<sh.cell_value(r,8)<1 else None,'innings':str(sh.cell_value(r,6)), 'teams':{teams[i]:{'runs':num(r+i,3),'hits':num(r+i,4),'errors':num(r+i,5),'hr':num(r+i,13)} for i in range(2)}}
+     # Only classify an unfinished score when the workbook's sealed count reconciles.
+     sealed=[games[n] for n in nums if all(t['runs'] is not None for t in games[n]['teams'].values()) and (re.fullmatch(r'[1-4](?:\.0)?',games[n]['innings']) or len({t['runs'] for t in games[n]['teams'].values()})==1)]
++    sealed += [games[n] for n in args.sealed_game if n in nums and games[n] not in sealed]
+     assert len(sealed)==data['incidents'][day]['sealed'],('Unresolved sealed games',day)
+     for n in nums:
+         g=games[n]
+@@ -64,16 +66,17 @@ for filename in args.files:
+             if any('Lanzador del' in str(v) for v in sh.row_values(r)):
+                 announced=name
+                 following=next((g for g in snapshot['games'] if g['date']>day and team in [g['away'],g['home']]),None)
+-                if announced and following:prob[(following['number'],team)]={'game':following['number'],'team':team,'name':resolve(team,announced),'reportedAt':day}
++                if team in probable_games:following=schedule[probable_games[team]]
++                if announced and following:prob[(following['number'],team,day)]={'game':following['number'],'team':team,'name':resolve(team,announced),'reportedAt':day}
+                 continue
+             number=sh.cell_value(r,nc+1)
+             if not name or not isinstance(number,(float,int)):continue
+             canonical=resolve(team,name,int(number))
+             for c in range(start,sh.ncols):
+-                value=str(sh.cell_value(r,c)).strip(); match=re.match(r'^(\d+)(?:\.0)?(?:\s*\(([GPS])\))?$',value)
++                value=str(sh.cell_value(r,c)).strip().upper(); match=re.match(r'^(\d+)(?:\.0)?(?:\s*\(([GPS])\))?$',value)
+                 if not match or int(match[1])==0:continue
+                 pitchdate,game_index=dates[c]
+-                if pitchdate>day:continue
++                if pitchdate>day or (args.pitch_since and pitchdate<args.pitch_since):continue
+                 candidates=[games[n] for n in nums if games[n]['date']==pitchdate and team in games[n]['teams']] if pitchdate==day else [g for g in sessions.values() if g['date']==pitchdate and team in g['teams'] and g['teams'][team]['runs'] is not None]
+                 # Postponed games retain their old number; use actual play order.
+                 candidates.sort(key=lambda g:g.get('dayOrder',g['number']))
+@@ -81,6 +84,8 @@ for filename in args.files:
+                 game_number=candidates[game_index]['number']
+                 pitches[(team,canonical,pitchdate,game_number)]={'gameNumber':game_number,'team':team,'name':canonical,'rawName':name,'number':int(number),'date':pitchdate,'pitches':int(match[1]),'decision':match[2] or ''}
+     origin={'file':Path(filename).name,'sha256':hashlib.sha256(Path(filename).read_bytes()).hexdigest(),'date':day}
++    if args.pitch_since:origin['pitchSince']=args.pitch_since
++    if args.sealed_game:origin['reviewedSealedGames']=args.sealed_game
+     if args.results_only:origin.update(scope='results-only',note='Pitching sheets end on October 17; no October 18 workload or new probable pitchers imported.')
+     data['provenance']=[p for p in data['provenance'] if p['file']!=origin['file']]+[origin]
+ data.update(gameSessions=list(sessions.values()),games=list(games.values()),pitches=list(pitches.values()),probables=list(prob.values()))
+diff --git a/tests/serie65-daily.test.mjs b/tests/serie65-daily.test.mjs
+index bcde1201c..ccb6f3568 100644
+--- a/tests/serie65-daily.test.mjs
++++ b/tests/serie65-daily.test.mjs
+@@ -54,10 +54,10 @@ test('October 15 keeps the sealed score separate from six final results and impo
+ 
+ test('all sixteen teams retain the date received separately from their last outing',()=>{
+  assert.equal(Object.keys(daily.teamUpdatedAt).length,16);
+- for(const date of Object.values(daily.teamReceivedAt))assert.equal(date,'2026-10-19');
+- for(const team of ['IJV','PRI','IND','MAY','VCL','ART'])assert.equal(daily.teamUpdatedAt[team],'2026-10-17');
+- for(const team of ['MTZ','CFG','SSP','LTU','HOL','GRA','GTM','SCU','CMG','CAV'])assert.equal(daily.teamUpdatedAt[team],'2026-10-19');
+- assert.equal(daily.teamUpdatedAt.IJV,'2026-10-17');
++ for(const date of Object.values(daily.teamReceivedAt))assert.equal(date,'2026-10-20');
++ assert.equal(daily.teamUpdatedAt.MAY,'2026-10-17');
++ for(const team of ['MTZ','CFG'])assert.equal(daily.teamUpdatedAt[team],'2026-10-19');
++ for(const team of Object.keys(daily.teamUpdatedAt).filter(t=>!['MAY','MTZ','CFG'].includes(t)))assert.equal(daily.teamUpdatedAt[team],'2026-10-20');
+  assert.ok(daily.pitches.some(p=>p.team==='IJV'&&p.date==='2026-10-17'));
+ });
+ 
+@@ -65,7 +65,7 @@ test('October 19 includes four finals and sealed workload without awarding a fif
+  const games=daily.games.filter(g=>g.date==='2026-10-19');
+  assert.equal(games.filter(g=>g.score).length,4);
+  assert.equal(games.filter(g=>g.score).reduce((s,g)=>s+g.score[0]+g.score[1],0),52);
+- const sealed=games.find(g=>g.number===102);assert.equal(sealed.score,null);assert.deepEqual(sealed.partialScore,[2,1]);
++ const sealed=raw.gameSessions.find(g=>g.number===102&&g.date==='2026-10-19');assert.equal(sealed.status,'sealed');assert.deepEqual(Object.values(sealed.teams).map(t=>t.runs),[2,1]);
+  assert.equal(raw.pitches.filter(p=>p.date==='2026-10-19').length,27);
+  assert.equal(raw.pitches.filter(p=>p.date==='2026-10-19').reduce((s,p)=>s+p.pitches,0),1262);
+  assert.equal(raw.probables.filter(p=>p.reportedAt==='2026-10-19').length,11);
+@@ -101,3 +101,21 @@ test('October 17 preserves a nine-inning sealed tie and the resumed doubleheader
+  for(const day of ['2026-10-16','2026-10-17'])assert.ok(raw.pitches.some(p=>p.gameNumber===84&&p.date===day));
+  assert.equal(games.filter(g=>g.score).reduce((n,g)=>n+g.score[0]+g.score[1],0),73);
+ });
++
++ test('October 20 preserves doubleheader and sealed workloads without duplicating older outings',()=>{
++ const sessions=raw.gameSessions.filter(g=>g.date==='2026-10-20');
++ const finals=sessions.filter(g=>g.status==='final');assert.equal(finals.length,7);
++ assert.equal(finals.reduce((n,g)=>n+Object.values(g.teams).reduce((v,t)=>v+t.runs,0),0),70);
++ assert.equal(raw.pitches.filter(p=>p.date==='2026-10-20').length,44);
++ assert.equal(raw.pitches.find(p=>p.date==='2026-10-20'&&p.name==='Erly Casanova Callaba').pitches,25);
++ assert.equal(raw.pitches.find(p=>p.date==='2026-10-20'&&p.name==='Reemberto Barreto Grave de Peralta').pitches,10);
++ assert.equal(raw.pitches.find(p=>p.date==='2026-10-20'&&p.name==='José Isais Grandales Rodríguez').gameNumber,102);
++ assert.equal(raw.pitches.find(p=>p.date==='2026-10-20'&&p.name==='José Eduardo Santos Escalantes').gameNumber,110);
++ assert.equal(sessions.find(g=>g.number===108).status,'sealed');
++ assert.equal(raw.probables.filter(p=>p.reportedAt==='2026-10-20').length,14);
++ assert.ok(raw.probables.filter(p=>p.reportedAt==='2026-10-20'&&['MTZ','CFG'].includes(p.team)).every(p=>p.game===107));
++ const f=structuredClone(feed);const g=f.snapshot.games.find(g=>g.number===108);g.date='2026-10-21';g.score=[1,6];
++ const result=makeDaily(f);assert.deepEqual(result.games.find(g=>g.number===108).score,[1,6]);
++ assert.equal(result.games.find(g=>g.number===108).date,'2026-10-21');
++ assert.ok(result.pitches.some(p=>p.gameNumber===108&&p.date==='2026-10-20'&&p.pitches===9));
++ });
