@@ -13,6 +13,7 @@ on:
       - 'parse_connections.py'
       - 'parse_extra.py'
       - 'download_reports.json'
+      - 'test_downloads.py'
 permissions:
   contents: write
 concurrency:
@@ -32,8 +33,16 @@ jobs:
           python-version: '3.12'
       - name: Preparar lector PDF
         run: sudo apt-get update -qq && sudo apt-get install -y poppler-utils
+      - name: Probar guardado parcial y reanudación
+        run: python -m unittest test_downloads.py
+      - name: Configurar checkpoints
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
       - name: Descargar y validar reportes independientes
-        run: python update_downloads.py
+        env:
+          DOWNLOADS_PUSH_CHECKPOINTS: '1'
+        run: python -u update_downloads.py
       - name: Guardar evidencia
         if: always()
         uses: actions/upload-artifact@v4
@@ -42,6 +51,7 @@ jobs:
           path: downloads/
           retention-days: 30
       - name: Publicar únicamente las descargas
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
