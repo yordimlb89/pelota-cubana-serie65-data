@@ -2,7 +2,7 @@
 import os,time,concurrent.futures,hashlib,importlib.util,json,re,subprocess,tempfile,urllib.parse,urllib.request
 from datetime import datetime,timezone
 from pathlib import Path
-from parse_extra import homers,collective
+from parse_extra import homers,collective,team_contacts
 BASE='https://fcb.beisbolcubano.cu/PDF/BeisbolSN65/'
 ROOT=Path('downloads');ROOT.mkdir(exist_ok=True)
 FILE=ROOT/'65.json'
@@ -36,6 +36,7 @@ def download(path):
   if '/BEIM_' in path and 'Colect' in path and '-Grupos' not in path and 'Conexiones' not in path:
    table=collective(text)
    if table:meta['collective']=table
+  if 'Colect' in path and 'Conexiones' in path and '-Grupos' not in path:meta['contacts']=team_contacts(text)
   return path,meta,body,data,None
  except Exception as e:return path,None,None,None,str(e)
 def publish_checkpoint():
