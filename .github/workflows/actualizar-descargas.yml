@@ -1,0 +1,63 @@
+name: Actualizar descargas oficiales Serie 65
+on:
+  schedule:
+    - cron: '0 2,20,22 * * *'
+      timezone: America/New_York
+    - cron: '30 2,20,22 * * *'
+      timezone: America/New_York
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/actualizar-descargas.yml'
+      - 'update_downloads.py'
+      - 'parse_connections.py'
+      - 'parse_extra.py'
+      - 'download_reports.json'
+permissions:
+  contents: write
+concurrency:
+  group: descargas-oficiales-serie65
+  cancel-in-progress: false
+jobs:
+  descargar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Preparar lector PDF
+        run: sudo apt-get update -qq && sudo apt-get install -y poppler-utils
+      - name: Descargar y validar reportes independientes
+        run: python update_downloads.py
+      - name: Guardar evidencia
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: descargas-serie65-${{ github.run_id }}
+          path: downloads/
+          retention-days: 30
+      - name: Publicar únicamente las descargas
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp -a downloads "$RUNNER_TEMP/verified-downloads"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp -a "$RUNNER_TEMP/verified-downloads/." downloads/
+            git add -- downloads/
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m 'Actualizar PDF y conexiones verificadas de Serie 65'
+            if git push origin HEAD:main; then
+              curl --fail --max-time 60 --retry 2 https://pelotacubanastats.com/api/serie65-downloads -o /dev/null || true
+              exit 0
+            fi
+          done
+          exit 1
