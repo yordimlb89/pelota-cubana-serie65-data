@@ -12,7 +12,7 @@ def get(path):
 # Wait for the shared feed's five-minute cache after a data publication.
 if Path('data.json').exists():
  expected=json.loads(Path('data.json').read_text())['snapshot']['updatedAt']
- stamp=lambda value:datetime.datetime.fromisoformat(value.replace('Z','+00:00'))
+ stamp=lambda value:int(datetime.datetime.fromisoformat(value.replace('Z','+00:00')).timestamp()*1000)
  for attempt in range(12):
   try:
    body,_=get('/api/storage-status');status=json.loads(body)
