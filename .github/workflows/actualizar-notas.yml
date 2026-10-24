@@ -8,8 +8,9 @@ on:
     paths:
       - '.github/workflows/actualizar-notas.yml'
       - 'refresh_game_notes.py'
+      - 'refresh_notes_context.py'
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: notas-juego-serie65
   cancel-in-progress: false
@@ -22,9 +23,28 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Actualizar y verificar cada PDF
+      - name: Recuperar contexto de los juegos
+        continue-on-error: true
+        run: python -u refresh_notes_context.py
+      - name: Guardar cada juego verificado
+        if: always()
+        run: |
+          if [ -f notes-context/65.json ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add notes-context/65.json
+            if ! git diff --cached --quiet; then
+              git commit -m "Actualizar contexto verificado de notas"
+              for attempt in 1 2 3; do
+                git pull --rebase && git push && break
+                if [ "$attempt" = "3" ]; then exit 1; fi
+              done
+            fi
+          fi
+      - name: Actualizar y verificar las ediciones de datos
+        if: always()
         run: python -u refresh_game_notes.py
-      - name: Conservar los PDF guardados y el recibo
+      - name: Conservar los datos de las notas y el recibo
         if: always()
         uses: actions/upload-artifact@v4
         with:
