@@ -1,4 +1,4 @@
-"""Warm today's and tomorrow's independently saved game PDFs. No AI dependencies."""
+"""Refresh today's and tomorrow's saved game data. PDFs are generated only on download. No AI dependencies."""
 import datetime,json,time,urllib.request
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -17,10 +17,12 @@ for delta in (0,1):
   if game['finished']:continue
   for attempt in range(3):
    try:
-    body,headers=get(game['pdf'])
-    if not body.startswith(b'%PDF-') or len(body)<1000:raise ValueError('Invalid PDF')
+    body,headers=get('/api/game-notes?game='+str(game['number']))
+    model=json.loads(body)
+    if model.get('game',{}).get('number')!=game['number'] or not model.get('sections'):raise ValueError('Invalid game snapshot')
+    if not any(k.lower()=='x-notes-storage' and v=='json-only' for k,v in headers.items()):raise ValueError('JSON persistence not confirmed')
     if any(k.lower()=='x-notes-retained' for k in headers):raise ValueError('Previous edition retained; refresh pending')
-    path=output/f"{day}_{game['away']}_{game['home']}_{game['number']}.pdf";tmp=path.with_suffix('.tmp');tmp.write_bytes(body);tmp.replace(path)
+    path=output/f"{day}_{game['away']}_{game['home']}_{game['number']}.json";tmp=path.with_suffix('.tmp');tmp.write_bytes(body);tmp.replace(path)
     saved.append({'game':game['number'],'date':day,'bytes':len(body),'file':str(path)})
     print('Saved',game['number'],len(body),flush=True);break
    except Exception as e:
