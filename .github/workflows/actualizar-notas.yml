@@ -1,0 +1,33 @@
+name: Actualizar notas de juego Serie 65
+on:
+  schedule:
+    - cron: '15,45 * * * *'
+      timezone: America/New_York
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/actualizar-notas.yml'
+      - 'refresh_game_notes.py'
+permissions:
+  contents: read
+concurrency:
+  group: notas-juego-serie65
+  cancel-in-progress: false
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Actualizar y verificar cada PDF
+        run: python -u refresh_game_notes.py
+      - name: Conservar los PDF guardados y el recibo
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: notas-serie65-${{ github.run_id }}
+          path: game-notes/
+          retention-days: 30
