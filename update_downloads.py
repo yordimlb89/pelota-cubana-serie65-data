@@ -1,5 +1,5 @@
 """Independent official-download snapshots. Never touches data.json or the normal updater."""
-import time,concurrent.futures,hashlib,importlib.util,json,re,subprocess,tempfile,urllib.parse,urllib.request
+import os,time,concurrent.futures,hashlib,importlib.util,json,re,subprocess,tempfile,urllib.parse,urllib.request
 from datetime import datetime,timezone
 from pathlib import Path
 from parse_extra import homers,collective
@@ -38,17 +38,46 @@ def download(path):
    if table:meta['collective']=table
   return path,meta,body,data,None
  except Exception as e:return path,None,None,None,str(e)
-results=[]
-with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:results=list(pool.map(download,paths))
-reports=dict(old.get('reports',{}));errors={};updated=0
-for path,meta,body,data,error in results:
- if error:errors[path]=error;continue
- dest=ROOT/'current'/path;dest.parent.mkdir(parents=True,exist_ok=True)
- dest.write_bytes(body)
- reports[path]=meta;updated+=1
- if data:old['connections']=data
-old.update(schema=1,edition=65,competition='nacional',reports=reports,checkedAt=datetime.now(timezone.utc).isoformat(),errors=errors)
-FILE.write_text(json.dumps(old,ensure_ascii=False,separators=(',',':'))+'\n')
-print(f'{updated}/{len(paths)} verified; {len(errors)} retained/unavailable')
-for p,e in errors.items():print(p,e)
-if not updated:raise SystemExit('No valid downloads; existing data preserved')
+def publish_checkpoint():
+ if os.environ.get('DOWNLOADS_PUSH_CHECKPOINTS')!='1':return
+ subprocess.run(['git','add','--','downloads/'],check=True)
+ if subprocess.run(['git','diff','--cached','--quiet']).returncode==0:return
+ subprocess.run(['git','commit','-m','Guardar avance verificado de descargas Serie 65'],check=True)
+ for attempt in range(3):
+  if subprocess.run(['git','push','origin','HEAD:main']).returncode==0:
+   print('Checkpoint saved to GitHub',flush=True);return
+  if subprocess.run(['git','pull','--rebase','origin','main']).returncode!=0:
+   subprocess.run(['git','rebase','--abort']);raise RuntimeError('Checkpoint rebase failed; local files retained')
+ raise RuntimeError('Checkpoint push failed; local files retained')
+
+def prioritized_paths():
+ missing=set(old.get('errors',{}))|{p for p in paths if p not in old.get('reports',{}) or not (ROOT/'current'/p).exists()}
+ return sorted(paths,key=lambda p:(p not in old.get('errors',{}),p not in missing,paths.index(p)))
+
+def run_downloads(download_fn=download,publish_fn=publish_checkpoint):
+ reports=dict(old.get('reports',{}));errors=dict(old.get('errors',{}));updated=0;pending=set(paths);push_errors=[]
+ def save(final=False,push=False):
+  old.update(schema=1,edition=65,competition='nacional',reports=reports,checkedAt=datetime.now(timezone.utc).isoformat(),errors=errors,pending=sorted(pending),inProgress=not final)
+  tmp=FILE.with_suffix('.tmp');tmp.write_text(json.dumps(old,ensure_ascii=False,separators=(',',':'))+'\n');tmp.replace(FILE)
+  if push:
+   try:publish_fn()
+   except Exception as e:push_errors.append(str(e));print('Checkpoint publication pending:',str(e),flush=True)
+ try:
+  with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+   futures=[pool.submit(download_fn,p) for p in prioritized_paths()]
+   for future in concurrent.futures.as_completed(futures):
+    path,meta,body,data,error=future.result();pending.discard(path)
+    if error:errors[path]=error
+    else:
+     dest=ROOT/'current'/path;dest.parent.mkdir(parents=True,exist_ok=True)
+     tmp=dest.with_suffix(dest.suffix+'.tmp');tmp.write_bytes(body);tmp.replace(dest)
+     reports[path]=meta;errors.pop(path,None);updated+=1
+     if data:old['connections']=data
+    save(push=not error and (updated==1 or updated%6==0))
+    print(f'{updated} saved; {len(pending)} pending; {len(errors)} source errors',flush=True)
+ finally:save(final=True,push=True)
+ print(f'{updated}/{len(paths)} verified; {len(errors)} retained/unavailable',flush=True)
+ return updated
+
+if __name__=='__main__':
+ if not run_downloads():raise SystemExit('No valid downloads; existing data preserved')
