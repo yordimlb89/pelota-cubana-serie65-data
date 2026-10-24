@@ -9,6 +9,18 @@ def get(path):
  req=urllib.request.Request(ROOT+path,headers={'User-Agent':'PCUSA-GameNotes/1.0','Cache-Control':'no-cache'})
  with urllib.request.urlopen(req,timeout=120) as r:
   return r.read(),dict(r.headers)
+# Wait for the shared feed's five-minute cache after a data publication.
+if Path('data.json').exists():
+ expected=json.loads(Path('data.json').read_text())['snapshot']['updatedAt']
+ stamp=lambda value:datetime.datetime.fromisoformat(value.replace('Z','+00:00'))
+ for attempt in range(12):
+  try:
+   body,_=get('/api/storage-status');status=json.loads(body)
+   if status.get('persistent') and stamp(status['serie65']['source_updated_at'])>=stamp(expected):break
+   raise ValueError('Shared feed has not reached the published version')
+  except Exception as error:
+   if attempt==11:raise RuntimeError('Game-note inputs not synchronized') from error
+   time.sleep(30)
 for delta in (0,1):
  day=(datetime.datetime.now(ZoneInfo('America/Havana')).date()+datetime.timedelta(days=delta)).isoformat()
  try:body,_=get('/api/game-notes?date='+day);listing=json.loads(body)
