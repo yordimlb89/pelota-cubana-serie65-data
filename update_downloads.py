@@ -1,5 +1,5 @@
 """Independent official-download snapshots. Never touches data.json or the normal updater."""
-import concurrent.futures,hashlib,importlib.util,json,re,subprocess,tempfile,urllib.parse,urllib.request
+import time,concurrent.futures,hashlib,importlib.util,json,re,subprocess,tempfile,urllib.parse,urllib.request
 from datetime import datetime,timezone
 from pathlib import Path
 from parse_extra import homers,collective
@@ -13,7 +13,12 @@ def download(path):
  try:
   url=BASE+urllib.parse.quote(path,safe='/')
   req=urllib.request.Request(url,headers={'User-Agent':'PelotaCubanaStats official report archive'})
-  body=urllib.request.urlopen(req,timeout=60).read()
+  for attempt in range(3):
+   try:
+    body=urllib.request.urlopen(req,timeout=45).read();break
+   except Exception:
+    if attempt==2:raise
+    time.sleep(2+attempt)
   if not body.startswith(b'%PDF-') or len(body)>20*1024*1024:raise ValueError('Invalid PDF')
   with tempfile.NamedTemporaryFile(suffix='.pdf') as tmp:
    tmp.write(body);tmp.flush();text=subprocess.check_output(['pdftotext','-layout',tmp.name,'-'],text=True)
