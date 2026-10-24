@@ -4,6 +4,10 @@ on:
     - cron: '15,45 * * * *'
       timezone: America/New_York
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Actualizar Serie 65", "Actualizar equipos Serie 65", "Actualizar splits Serie 65", "Actualizar descargas oficiales Serie 65"]
+    types: [completed]
+    branches: [main]
   push:
     paths:
       - '.github/workflows/actualizar-notas.yml'
@@ -20,6 +24,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
