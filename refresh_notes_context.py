@@ -54,11 +54,11 @@ def parse(raw,g,feed):
    else:touched.add(matches[0])
   reached[team]={r['Nombre'].split(' - ')[0]:True if int(r['H'])>0 or r['Nombre'].split(' - ')[0] in touched else False if complete else None for r in rows}
   if complete:onbase_complete.append(team)
- return {'number':g['number'],'date':g['date'],'away':g['away'],'home':g['home'],'score':g['score'],'firstScoringTeam':[g['away'],g['home']][first['side']],'reached':reached,'onbaseComplete':onbase_complete,'source':g['source'],'verifiedAt':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+ return {'number':g['number'],'date':g['date'],'away':g['away'],'home':g['home'],'score':g['score'],'firstScoringTeam':[g['away'],g['home']][first['side']],'inningsComplete':all_halves,'innings':[{'inning':h['inning'],'side':h['side'],'runs':h['runs']} for h in halves],'reached':reached,'onbaseComplete':onbase_complete,'source':g['source'],'verifiedAt':datetime.datetime.now(datetime.timezone.utc).isoformat()}
 def main():
  feed=json.loads(get(FEED));feed=feed.get('feed',feed)
  old=json.loads(OUT.read_text()) if OUT.exists() else {'schema':1,'edition':65,'games':{}}
- jobs=[g for g in feed['snapshot']['games'] if g.get('score') and g.get('reportId') and (str(g['number']) not in old['games'] or old['games'][str(g['number'])]['score']!=g['score'] or old['games'][str(g['number'])].get('date')!=g['date'] or g['date']>=(datetime.datetime.now(datetime.timezone.utc).date()-datetime.timedelta(days=3)).isoformat())]
+ jobs=[g for g in feed['snapshot']['games'] if g.get('score') and g.get('reportId') and (str(g['number']) not in old['games'] or 'innings' not in old['games'][str(g['number'])] or old['games'][str(g['number'])]['score']!=g['score'] or old['games'][str(g['number'])].get('date')!=g['date'] or g['date']>=(datetime.datetime.now(datetime.timezone.utc).date()-datetime.timedelta(days=3)).isoformat())]
  errors=[]
  def work(g):return g,parse(get(g['source']).decode('utf-8'),g,feed)
  def save():
