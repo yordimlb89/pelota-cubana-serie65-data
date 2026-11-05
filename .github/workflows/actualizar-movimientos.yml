@@ -1,0 +1,37 @@
+name: Actualizar movimientos cubanos
+on:
+  schedule:
+    - cron: '12,42 * * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/actualizar-movimientos.yml'
+permissions:
+  contents: read
+concurrency:
+  group: movimientos-cubanos
+  cancel-in-progress: false
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Actualizar y conservar historial
+        run: |
+          mkdir -p movimientos
+          curl --fail --show-error --silent --retry 2 --retry-delay 10 --max-time 180 'https://pelotacubanastats.com/api/movimientos' -o movimientos/historial.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('movimientos/historial.json'))
+          assert d['since']=='2026-11-01'
+          assert len({e['id'] for e in d['events']})==len(d['events'])
+          if d.get('warning'):raise SystemExit(d['warning'])
+          print('Movimientos verificados:',len(d['events']),d['updatedAt'])
+          PY
+      - name: Conservar recibo independiente
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: movimientos-cubanos-${{ github.run_id }}
+          path: movimientos/
+          retention-days: 30
