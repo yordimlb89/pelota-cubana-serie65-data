@@ -2,9 +2,9 @@ name: Actualizar Serie 65
 
 on:
   schedule:
-    - cron: '0 2,20,22 * * *'
+    - cron: '0 0,2,18,20,22 * * *'
       timezone: America/New_York
-    - cron: '30 2,20,22 * * *'
+    - cron: '30 0,2,18,20,22 * * *'
       timezone: America/New_York
   workflow_dispatch:
   push:
@@ -63,7 +63,7 @@ jobs:
 
       - name: Consultar fuentes y actualizar datos
         run: |
-          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "30 2,20,22 * * *" ]; then
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "30 0,2,18,20,22 * * *" ]; then
             if python -c 'import json,sys;sys.exit(0 if not json.load(open("data.json")).get("updateStatus",{}).get("partial",True) else 1)'; then
               echo "La última actualización está completa; no hace falta recuperación."
               exit 0
