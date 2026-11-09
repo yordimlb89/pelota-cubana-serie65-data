@@ -1,0 +1,66 @@
+name: Actualizar mejores Serie 65
+on:
+  schedule:
+    - cron: '0 8 * * 1'
+      timezone: America/New_York
+  workflow_run:
+    workflows: ['Actualizar Serie 65']
+    types: [completed]
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/actualizar-mejores.yml']
+permissions:
+  contents: read
+concurrency:
+  group: mejores-serie65
+  cancel-in-progress: false
+jobs:
+  mejores:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Actualizar selecciones y notas de la próxima jornada
+        run: |
+          python - <<'PY'
+          import concurrent.futures,datetime,json,time,urllib.request
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+          root=Path('mejores');root.mkdir(exist_ok=True)
+          base='https://pelotacubanastats.com'
+          def get(path):
+              req=urllib.request.Request(base+path,headers={'Cache-Control':'no-cache','User-Agent':'PCUSA-Mejores/1.0'})
+              for attempt in range(3):
+                  try:
+                      with urllib.request.urlopen(req,timeout=180) as r:return r.read(),dict(r.headers)
+                  except Exception:
+                      if attempt==2:raise
+                      time.sleep(5)
+          body,headers=get('/api/serie65-best')
+          data=json.loads(body)
+          assert any(k.lower()=='x-best-storage' and v=='d1-r2-verified' for k,v in headers.items())
+          assert data['schema']==1
+          (root/'selecciones.json').write_bytes(body)
+          print('Publicadas:',sum(p['status']=='published' for p in data['periods']),'Esperando boxscores:',sum(p['status']=='blocked' for p in data['periods']))
+          today=datetime.datetime.now(ZoneInfo('America/New_York')).date()
+          games=[]
+          for offset in range(8):
+              day=(today+datetime.timedelta(days=offset)).isoformat()
+              body,_=get('/api/game-notes?date='+day)
+              games=[g for g in json.loads(body)['games'] if not g['finished']]
+              if games:break
+          def refresh(game):
+              body,headers=get('/api/game-notes?game='+str(game['number']))
+              assert not any(k.lower()=='x-notes-retained' for k in headers)
+              model=json.loads(body);assert model.get('best') is not None
+              (root/('nota-'+str(game['number'])+'.json')).write_bytes(body)
+              print('Guardada nota',game['number'],flush=True)
+          with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:list(pool.map(refresh,games))
+          PY
+      - name: Conservar cada selección y nota completada
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mejores-serie65-${{ github.run_id }}-${{ github.run_attempt }}
+          path: mejores/
+          if-no-files-found: warn
+          retention-days: 30
