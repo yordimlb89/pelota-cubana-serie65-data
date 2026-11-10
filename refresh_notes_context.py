@@ -67,27 +67,46 @@ def play_by_play(raw,g):
  for role,team in [('LogoEqV',g['away']),('LogoEqHC',g['home'])]:
   found=re.search(r'id="MainContent_ctl00_'+role+r'"[^>]*src="[^"]*/([A-Za-z]+)\.png"',raw,re.I)
   assert found and found[1].upper()==team,'Wrong team/role'
- halves={}
+ blocks=[]
+ source_spans=bool(re.search(r'<h3\b[^>]*>\s*<span\s+class="sede"',raw,re.I))
  for match in re.finditer(r'<h2\b[^>]*>(.*?)</h2>(.*?)(?=<h2\b|$)',raw,re.S|re.I):
   h=re.search(r'Inning\s+(\d+)\s*\((alta|baja)\)',clean(match[1]),re.I)
   if not h:continue
-  actions=[clean(x) for x in re.findall(r'<h3\b[^>]*>(.*?)</h3>',match[2],re.S|re.I)]
+  # Source actions carry sede spans; exclude subsequent footer/widget headings.
+  actions=[clean(x) for x in re.findall(r'<h3\b[^>]*>\s*<span\s+class="sede"[^>]*>(.*?)</span>\s*</h3>',match[2],re.S|re.I)]
+  if not source_spans:actions=[clean(x) for x in re.findall(r'<h3\b[^>]*>(.*?)</h3>',match[2],re.S|re.I)]
   summary=next((re.fullmatch(r'(\d+) Carreras,\s*(\d+) Hits,\s*(\d+) Errores',a) for a in actions if re.fullmatch(r'(\d+) Carreras,\s*(\d+) Hits,\s*(\d+) Errores',a)),None)
-  # Stop at the summary so subsequent widgets are never imported as plays.
   end=actions.index(summary[0]) if summary else len(actions);plays=actions[:end]
   assert plays,'Empty inning'
-  inning={'inning':int(h[1]),'side':0 if h[2].lower()=='alta' else 1,'runs':int(summary[1]) if summary else None,'hits':int(summary[2]) if summary else None,'errors':int(summary[3]) if summary else None,'plays':plays}
-  key=(inning['inning'],inning['side'])
-  assert key not in halves or halves[key]==inning,'Conflicting inning copies'
-  halves[key]=inning
- assert halves,'No play by play'
- ordered=[halves[k] for k in sorted(halves)]
- return ordered
+  blocks.append({'inning':int(h[1]),'side':0 if h[2].lower()=='alta' else 1,'runs':int(summary[1]) if summary else None,'hits':int(summary[2]) if summary else None,'errors':int(summary[3]) if summary else None,'plays':plays})
+ assert blocks,'No play by play'
+ # Remove desktop/mobile copies ONLY when their entire ordered block sequences match.
+ # Repeated actions and repeated inning labels within one source copy remain intact.
+ if len(blocks)%2==0:
+  half=len(blocks)//2;left,right=blocks[:half],blocks[half:]
+  if [(b['inning'],b['side']) for b in left]==[(b['inning'],b['side']) for b in right]:
+   assert left==right,'Conflicting inning copies'
+   blocks=left
+ counts={}
+ for b in blocks:
+  key=(b['inning'],b['side']);counts[key]=counts.get(key,0)+1
+ for i,b in enumerate(blocks):
+  if counts[(b['inning'],b['side'])]>1:b['sourceFragment']=i
+ return sorted(blocks,key=lambda b:(b['inning'],b['side']))
+
+def narrative_issues(plays,g):
+ issues=[]
+ if any(h['runs'] is None for h in plays):issues.append('missing-summary')
+ if any(h['inning']<1 or h['side'] not in [0,1] for h in plays):issues.append('invalid-inning')
+ if len({(h['inning'],h['side']) for h in plays})!=len(plays):issues.append('duplicate-inning-fragments')
+ if [(h['inning']-1)*2+h['side'] for h in plays]!=list(range(len(plays))):issues.append('missing-inning')
+ if not issues and [sum(h['runs'] for h in plays if h['side']==i) for i in [0,1]]!=g['score']:issues.append('score-mismatch')
+ return issues
 
 def main():
  feed=json.loads(get(FEED));feed=feed.get('feed',feed)
  old=json.loads(OUT.read_text()) if OUT.exists() else {'schema':1,'edition':65,'games':{}}
- jobs=[g for g in feed['snapshot']['games'] if g.get('score') and g.get('reportId') and (str(g['number']) not in old['games'] or 'playByPlay' not in old['games'][str(g['number'])] or old['games'][str(g['number'])]['score']!=g['score'] or old['games'][str(g['number'])].get('date')!=g['date'] or g['date']>=(datetime.datetime.now(datetime.timezone.utc).date()-datetime.timedelta(days=3)).isoformat())]
+ jobs=[g for g in feed['snapshot']['games'] if g.get('score') and len(g['score'])==2 and g['score'][0]!=g['score'][1] and g.get('reportId') and (str(g['number']) not in old['games'] or 'playByPlay' not in old['games'][str(g['number'])] or old['games'][str(g['number'])].get('playByPlayIssues') or old['games'][str(g['number'])]['score']!=g['score'] or old['games'][str(g['number'])].get('date')!=g['date'] or g['date']>=(datetime.datetime.now(datetime.timezone.utc).date()-datetime.timedelta(days=3)).isoformat())]
  errors=[]
  def work(g):
   raw=get(g['source']).decode('utf-8');plays=play_by_play(raw,g)
@@ -95,10 +114,7 @@ def main():
   result=prior.copy() if all(prior.get(k)==g.get(k) for k in ['number','date','away','home','score']) else {k:g[k] for k in ['number','date','away','home','score','source']}
   try:result.update(parse(raw,g,feed))
   except AssertionError:pass
-  issues=[]
-  if any(h['runs'] is None for h in plays):issues.append('missing-summary')
-  if [(h['inning']-1)*2+h['side'] for h in plays]!=list(range(len(plays))):issues.append('missing-inning')
-  if not issues and [sum(h['runs'] for h in plays if h['side']==i) for i in [0,1]]!=g['score']:issues.append('score-mismatch')
+  issues=narrative_issues(plays,g)
   result.update(playByPlay=plays,playByPlayIssues=issues,verifiedAt=datetime.datetime.now(datetime.timezone.utc).isoformat())
   return g,result
  def save():
