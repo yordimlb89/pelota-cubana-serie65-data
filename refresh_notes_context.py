@@ -103,10 +103,45 @@ def narrative_issues(plays,g):
  if not issues and [sum(h['runs'] for h in plays if h['side']==i) for i in [0,1]]!=g['score']:issues.append('score-mismatch')
  return issues
 
+"""Independent official scoreboard; no reconstruction from narrative or final totals."""
+import re,hashlib
+from lxml import html
+
+def extract_line_score(raw,g):
+ d=html.fromstring(raw);clean=lambda x:' '.join(x.text_content().split())
+ text=' '.join(d.text_content().split());assert 'LXV SERIE NACIONAL' in text.upper(),'Wrong edition'
+ assert d.xpath('//*[contains(concat(" ",normalize-space(@class)," ")," fs_text_info_BS ") and normalize-space(.)="Terminado"]'),'Game not final'
+ months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];y,m,day=map(int,g['date'].split('-'))
+ assert re.search(r'\b0?'+str(day)+r',\s*'+months[m-1]+r',\s*'+str(y)+r'\b',text,re.I),'Wrong date'
+ for role,team in [('LogoEqV',g['away']),('LogoEqHC',g['home'])]:
+  found=d.xpath('//*[@id="MainContent_ctl00_'+role+'"]/@src');assert len(found)==1 and re.search(r'/'+team+r'\.png$',found[0],re.I),'Wrong team/role'
+ copies=[];literal=[]
+ for container in d.xpath('//div[div/div[contains(concat(" ",normalize-space(@class)," ")," f-left ")]]'):
+  rows=[[clean(c)for c in row.xpath('./div[contains(concat(" ",normalize-space(@class)," ")," f-left ")]')]for row in container.xpath('./div')]
+  if len(rows)!=3 or not rows[0] or rows[0]!=[str(i+1)for i in range(len(rows[0]))]:continue
+  # Explicit team abbreviations appear in the sibling scoreboard column; their order is away/home.
+  roles=container.getparent().xpath('.//span[contains(concat(" ",normalize-space(@class)," ")," topBarSiglasScore ")]');roles=[clean(v)for v in roles]
+  assert roles==[g['away'],g['home']],f'Wrong scoreboard roles {roles}'
+  assert all(len(r)==len(rows[0])for r in rows),'Unequal scoreboard columns'
+  parsed=[]
+  for r in rows[1:]:
+   assert all(re.fullmatch(r'\d+',v)or v in ['','-','X','x']for v in r),'Unknown scoreboard cell'
+   parsed.append([int(v)if re.fullmatch(r'\d+',v)else None for v in r])
+  assert all(v is not None for v in parsed[0]),'Unplayed visitor inning'
+  missing=[i for i,v in enumerate(parsed[1])if v is None]
+  assert not missing or missing==[len(parsed[1])-1] and g['score'][1]>g['score'][0],'Unresolved home inning'
+  assert [sum(v for v in r if v is not None)for r in parsed]==g['score'],'Scoreboard does not reconcile with final'
+  copies.append(parsed);literal.append(rows)
+ assert copies,'No independent scoreboard'
+ assert all(c==copies[0]for c in copies),'Conflicting scoreboard copies'
+ away,home=copies[0];halves=[{'inning':i+1,'side':s,'runs':row[i]}for i in range(len(away))for s,row in enumerate([away,home])if row[i]is not None]
+ assert [(h['inning']-1)*2+h['side']for h in halves]==list(range(len(halves))),'Noncontiguous played halves'
+ return {'source':'official-scoreboard','url':g['source'],'sourceSha256':hashlib.sha256(raw.encode()).hexdigest(),'date':g['date'],'away':g['away'],'home':g['home'],'score':g['score'],'innings':list(range(1,len(away)+1)),'awayRuns':away,'homeRuns':home,'halves':halves,'verifiedCopies':len(copies),'originalCells':literal,'complete':True}
+
 def main():
  feed=json.loads(get(FEED));feed=feed.get('feed',feed)
  old=json.loads(OUT.read_text()) if OUT.exists() else {'schema':1,'edition':65,'games':{}}
- jobs=[g for g in feed['snapshot']['games'] if g.get('score') and len(g['score'])==2 and g['score'][0]!=g['score'][1] and g.get('reportId') and (str(g['number']) not in old['games'] or 'playByPlay' not in old['games'][str(g['number'])] or old['games'][str(g['number'])].get('playByPlayIssues') or old['games'][str(g['number'])]['score']!=g['score'] or old['games'][str(g['number'])].get('date')!=g['date'] or g['date']>=(datetime.datetime.now(datetime.timezone.utc).date()-datetime.timedelta(days=3)).isoformat())]
+ jobs=[g for g in feed['snapshot']['games'] if g.get('score') and len(g['score'])==2 and g['score'][0]!=g['score'][1] and g.get('reportId') and (str(g['number']) not in old['games'] or 'playByPlay' not in old['games'][str(g['number'])] or 'lineScore' not in old['games'][str(g['number'])] or old['games'][str(g['number'])].get('playByPlayIssues') or old['games'][str(g['number'])]['score']!=g['score'] or old['games'][str(g['number'])].get('date')!=g['date'] or g['date']>=(datetime.datetime.now(datetime.timezone.utc).date()-datetime.timedelta(days=3)).isoformat())]
  errors=[]
  def work(g):
   raw=get(g['source']).decode('utf-8');plays=play_by_play(raw,g)
@@ -114,6 +149,8 @@ def main():
   result=prior.copy() if all(prior.get(k)==g.get(k) for k in ['number','date','away','home','score']) else {k:g[k] for k in ['number','date','away','home','score','source']}
   try:result.update(parse(raw,g,feed))
   except AssertionError:pass
+  try:result['lineScore']=extract_line_score(raw,g);result.pop('lineScoreError',None)
+  except AssertionError as e:result.pop('lineScore',None);result['lineScoreError']=str(e)
   issues=narrative_issues(plays,g)
   result.update(playByPlay=plays,playByPlayIssues=issues,verifiedAt=datetime.datetime.now(datetime.timezone.utc).isoformat())
   return g,result
