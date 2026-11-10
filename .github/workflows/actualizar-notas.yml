@@ -29,6 +29,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Preparar lector del marcador oficial
+        run: python -m pip install lxml
       - name: Recuperar contexto de los juegos
         continue-on-error: true
         run: python -u refresh_notes_context.py
