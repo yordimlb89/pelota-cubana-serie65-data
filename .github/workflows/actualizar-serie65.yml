@@ -2,6 +2,8 @@ name: Actualizar Serie 65
 
 on:
   schedule:
+    - cron: '0 16,17 * * *'
+      timezone: America/New_York
     - cron: '0 0,2,18,20,22 * * *'
       timezone: America/New_York
     - cron: '30 0,2,18,20,22 * * *'
