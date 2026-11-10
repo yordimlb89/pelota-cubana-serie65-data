@@ -105,10 +105,10 @@ def narrative_issues(plays,g):
 
 """Independent official scoreboard; no reconstruction from narrative or final totals."""
 import re,hashlib
-from lxml import html
+from lxml import html as lxml_html
 
 def extract_line_score(raw,g):
- d=html.fromstring(raw);clean=lambda x:' '.join(x.text_content().split())
+ d=lxml_html.fromstring(raw);clean=lambda x:' '.join(x.text_content().split())
  text=' '.join(d.text_content().split());assert 'LXV SERIE NACIONAL' in text.upper(),'Wrong edition'
  assert d.xpath('//*[contains(concat(" ",normalize-space(@class)," ")," fs_text_info_BS ") and normalize-space(.)="Terminado"]'),'Game not final'
  months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];y,m,day=map(int,g['date'].split('-'))
