@@ -21,6 +21,13 @@ if Path('data.json').exists():
   except Exception as error:
    if attempt==11:raise RuntimeError('Game-note inputs not synchronized') from error
    time.sleep(30)
+# Refresh closed monthly/weekly/subseries selections even on dates without games.
+try:
+ body,headers=get('/api/serie65-best');selection=json.loads(body)
+ if not isinstance(selection.get('periods'),list):raise ValueError('Invalid best-player archive')
+ (output/'best-selection.json').write_bytes(body)
+ print('Saved best-player selections',len(selection['periods']),flush=True)
+except Exception as e:failures.append({'section':'best-selection','error':str(e)})
 for delta in (0,1):
  day=(datetime.datetime.now(ZoneInfo('America/Havana')).date()+datetime.timedelta(days=delta)).isoformat()
  try:body,_=get('/api/game-notes?date='+day);listing=json.loads(body)
