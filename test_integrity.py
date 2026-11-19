@@ -11,6 +11,21 @@ def fixture():
  individual=[{'group':'Bateo','label':'Individual','columns':['Nombre','Equipo','VB','C','H','2B','3B','HR','CI'],'rows':[[r[0].replace(' - 2B',''),t['label'],*r[1:]] for r in t['rows']]}for t in tables if t['group']=='Bateo']
  return {'schema':1,'snapshot':{'edition':65,'updatedAt':'2026-10-08T01:00:00Z','games':[g]},'records':[{'id':'individual','kind':'Estadísticas','title':'Estadísticas individuales'},{'id':'box','kind':'Juegos','title':'ART vs IJV','game':{'number':'1','scores':['1','0']}}],'reports':{'individual':{'structured':individual,'updatedAt':'2026-10-08T01:00:00Z'},'box':{'structured':tables,'updatedAt':'2026-10-08T01:00:00Z'}},'players':[],'updateStatus':{'staleTeams':[],'failures':[]}}
 class Integrity(unittest.TestCase):
+ def test_calendar_placeholder_is_not_a_finished_shutout(self):
+  import ast,datetime,pathlib,re
+  from lxml import html
+  # Load only the parser so this regression test never starts network imports.
+  source=ast.parse(pathlib.Path(__file__).with_name('update.py').read_text())
+  parser=next(n for n in source.body if isinstance(n,ast.FunctionDef) and n.name=='load_calendar')
+  scores=['0 - 0','4 - 0','0 - 9','13:00']+['0 - 0']*297
+  page=html.fromstring('<ul><li id="Gameday_20261118">'+''.join(f'<a href="?idJuego={i}"><span class="visible-xs">ART</span><span class="visible-xs">IJV</span><span class="resultado">{score}</span><span class="sede">Estadio</span></a>' for i,score in enumerate(scores,1))+'</li></ul>')
+  env={'fetch':lambda *a,**kw:page,'USE_CACHE':False,'datetime':datetime,'re':re,'plain':lambda x:' '.join(x.text_content().split()),'TEAMS':{'ART':'Artemisa','IJV':'Isla'},'uid':lambda key:key,'BASE':'https://example.test/'}
+  exec(compile(ast.Module(body=[parser],type_ignores=[]),'update.py','exec'),env)
+  games=env['load_calendar']()
+  self.assertIsNone(games[0]['score']);self.assertIsNone(games[0]['reportId']);self.assertEqual(games[0]['time'],'')
+  self.assertEqual(games[1]['score'],[4,0]);self.assertEqual(games[2]['score'],[0,9])
+  self.assertIsNotNone(games[1]['reportId']);self.assertIsNotNone(games[2]['reportId'])
+  self.assertEqual(games[3]['time'],'13:00');self.assertIsNone(games[3]['score'])
  def test_complete(self):
   d=fixture();a=apply_audit(d);self.assertEqual(a['validatedBoxscores'],1);self.assertFalse(d['updateStatus']['partial'])
  def test_missing_and_truncated_box(self):
