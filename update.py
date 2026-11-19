@@ -106,6 +106,8 @@ def load_calendar():
   for a in day.xpath('.//a[contains(@href,"idJuego")]'):
    gid=int(re.search(r'idJuego=(\d+)',a.get('href'))[1]);codes=[plain(s) for s in a.xpath('./span[contains(@class,"visible-xs")]')];assert len(codes)==2
    value=plain(a.xpath('./span[contains(@class,"resultado")]')[0]);score=re.fullmatch(r'(\d+)\s*-\s*(\d+)',value)
+   # The official calendar uses 0-0 for unplayed games, not final results.
+   if score and int(score[1])==0 and int(score[2])==0:score=None;value=''
    games.append({'id':f'snb65-clasificatoria-{gid}','number':gid,'date':date,'away':codes[0],'home':codes[1],'awayName':TEAMS[codes[0]],'homeName':TEAMS[codes[1]],'score':[int(score[1]),int(score[2])] if score else None,'time':value if not score else '', 'venue':plain(a.xpath('./span[contains(@class,"sede")]')[0]),'reportId':uid('game:'+str(gid)) if score else None,'source':BASE+'estadisticas/BoxScore?idJuego='+str(gid)})
  assert len(games)>300 and len({g['id'] for g in games})==len(games)
  return games
