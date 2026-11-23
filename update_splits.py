@@ -51,4 +51,5 @@ def main():
    else:blocks[key]=value
    save();print(key,'pending' if 'error' in value else len(value['rows']),flush=True)
  print(f'{len(blocks)}/80 blocks saved; {len(failures)} queries pending')
+ if failures or len(blocks)!=len(TEAMS)*len(KINDS):raise RuntimeError('Incomplete split refresh; valid blocks retained for retry')
 if __name__=='__main__':main()
