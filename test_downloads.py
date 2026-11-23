@@ -42,11 +42,12 @@ class CollectiveContactsTest(unittest.TestCase):
   for bad in [self.fixture().replace('TOTAL 16','TOTAL 17'),self.fixture().replace('ARTEMISA','INDUSTRIALES')]:
    with self.assertRaises(ValueError):team_contacts(bad)
 
-
 class SourceFormatTest(unittest.TestCase):
  def test_raw_homers_keep_wrapped_pitcher_and_batter_names(self):
   from update_downloads import raw_homers
   raw='ARRUEBARUENA ESCALANTE Bárbaro Erisbel (CFG)\n24/10/2026 GRACIAL FUENTES Geyler (MAY) 2 1B-2B-3B RF Estadio\n1\nGONZÁLEZ CUELLAR Frank David (IJV)\n24/10/2026 BARRETO GRAVE DE PERALTA Reemberto (IND)\n1 CF Estadio\n2'
+  inline='ARRUEBARUENA ESCALANTE Bárbaro Erisbel (CFG) 24/10/2026 GRACIAL FUENTES Geyler (MAY) 2 1B-2B-3B RF Estadio 1'
+  self.assertEqual(raw_homers(inline,'source')[0]['batter'],'ARRUEBARUENA ESCALANTE Bárbaro Erisbel')
   rows=raw_homers(raw,'source')
   self.assertEqual(len(rows),2)
   self.assertEqual(rows[0]['batter'],'ARRUEBARUENA ESCALANTE Bárbaro Erisbel')
