@@ -13,17 +13,16 @@ def raw_homers(raw,source):
  lines=[line.strip() for line in raw.splitlines() if line.strip()]
  entries=[]
  for i,line in enumerate(lines):
+  inline=re.match(r'^(.+?\([A-Z]{3}\))\s+(\d{2}/\d{2}/\d{4})\s+(.+)\s+(\d+)$',line)
+  if inline:
+   batter,date,rest,number=inline.groups();entries.append(number+' '+date+' '+batter+' '+rest);continue
   if not re.match(r'^\d{2}/\d{2}/\d{4}\s',line):continue
   if i==0 or not re.search(r'\([A-Z]{3}\)$',lines[i-1]):raise ValueError('Incomplete raw home run batter')
   end=next((j for j in range(i+1,min(i+4,len(lines))) if re.fullmatch(r'\d+',lines[j])),None)
   if end is None:raise ValueError('Incomplete raw home run number')
   date,rest=' '.join(lines[i:end]).split(' ',1)
   entries.append(lines[end]+' '+date+' '+lines[i-1]+' '+rest)
- try:return homers('\n'.join(entries),source)
- except ValueError:
-  print('HR raw diagnostic:',len(entries),repr(lines[:16]),repr(lines[-16:]),flush=True)
-  print('HR sequence:',[e.split(' ',1)[0] for e in entries],flush=True)
-  raise
+ return homers('\n'.join(entries),source)
 def download(path):
  try:
   grouped=path.replace('-Clasificatoria.pdf','-Clasificatoria-Grupos.pdf')
