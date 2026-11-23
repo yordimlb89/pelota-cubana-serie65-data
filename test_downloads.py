@@ -42,4 +42,25 @@ class CollectiveContactsTest(unittest.TestCase):
   for bad in [self.fixture().replace('TOTAL 16','TOTAL 17'),self.fixture().replace('ARTEMISA','INDUSTRIALES')]:
    with self.assertRaises(ValueError):team_contacts(bad)
 
+
+class SourceFormatTest(unittest.TestCase):
+ def test_raw_homers_keep_wrapped_pitcher_and_batter_names(self):
+  from update_downloads import raw_homers
+  raw='ARRUEBARUENA ESCALANTE Bárbaro Erisbel (CFG)\n24/10/2026 GRACIAL FUENTES Geyler (MAY) 2 1B-2B-3B RF Estadio\n1\nGONZÁLEZ CUELLAR Frank David (IJV)\n24/10/2026 BARRETO GRAVE DE PERALTA Reemberto (IND)\n1 CF Estadio\n2'
+  rows=raw_homers(raw,'source')
+  self.assertEqual(len(rows),2)
+  self.assertEqual(rows[0]['batter'],'ARRUEBARUENA ESCALANTE Bárbaro Erisbel')
+  self.assertEqual(rows[1]['pitcher'],'BARRETO GRAVE DE PERALTA Reemberto')
+  with self.assertRaises(ValueError):raw_homers(raw.rsplit('\n2',1)[0],'source')
+  with self.assertRaises(ValueError):raw_homers(raw.rsplit('\n2',1)[0]+'\n3','source')
+ def test_regional_tables_need_all_sixteen_unique_teams(self):
+  from parse_extra import collective
+  from parse_connections import TEAMS
+  names=list(TEAMS)
+  page=lambda ns:'Equipo H\n'+'\n'.join(n+' 1' for n in ns)
+  text=page(names[:8])+'\n'+page(names[8:])
+  self.assertEqual(len(collective(text,True)['tables'][0]['rows']),16)
+  with self.assertRaises(ValueError):collective(page(names[:8]),True)
+  with self.assertRaises(ValueError):collective(page(names[:8])+'\n'+page(names[:8]),True)
+
 if __name__=='__main__':unittest.main()

@@ -14,11 +14,11 @@ def homers(text,source):
  if not out or nums!=list(range(1,len(nums)+1)):raise ValueError('Incomplete home run report')
  return out
 
-def collective(text):
+def collective(text,allow_groups=False):
  tables=[];header=None;rows=[];page_number=1
  def finish():
   if not header:return
-  if len(rows)!=16:raise ValueError('Incomplete collective report')
+  if len(rows) not in ([8,16] if allow_groups else [16]):raise ValueError('Incomplete collective report')
   tables.append({'page':page_number,'columns':header[1:],'rows':rows[:]})
  for index,page in enumerate(text.split('\f')):
   for s in page.splitlines():
@@ -31,11 +31,20 @@ def collective(text):
    if len(values)!=len(header)-1:raise ValueError('Column count mismatch: '+m[1])
    rows.append({'team':TEAM_KEYS[key(m[1].strip())],'values':values})
  finish()
+ if allow_groups:
+  merged={}
+  for table in tables:
+   signature=tuple(table['columns'])
+   target=merged.setdefault(signature,dict(page=table['page'],columns=table['columns'],rows=[]))
+   target['rows'].extend(table['rows'])
+  tables=list(merged.values())
+  for table in tables:
+   if len(table['rows'])!=16 or len({r['team'] for r in table['rows']})!=16:raise ValueError('Incomplete or duplicate regional teams')
  return {'tables':tables} if tables else None
 
-def team_contacts(text):
+def team_contacts(text,allow_groups=False):
  from parse_connections import FIELDS
- parsed=collective(text)
+ parsed=collective(text,allow_groups)
  if not parsed or len(parsed['tables'])!=1:raise ValueError('Expected one collective contact table')
  rows=[]
  for item in parsed['tables'][0]['rows']:
@@ -50,8 +59,10 @@ def team_contacts(text):
   if r['left']+r['center']+r['right']!=r['total']:raise ValueError('Collective total mismatch')
   rows.append(r)
  if len({r['team'] for r in rows})!=16:raise ValueError('Missing or duplicate collective team')
- total=re.search(r'^\s*TOTAL\s+((?:\d+\s+){18}(?:\d+(?:\.\d+)?|-))',text,re.M)
+ total=re.findall(r'^\s*TOTAL\s+((?:\d+\s+){18}(?:\d+(?:\.\d+)?|-))',text,re.M)
  if not total:raise ValueError('Missing league total')
- for k,n in zip(FIELDS,map(int,total.group(1).split()[:18])):
-  if sum(r[k] for r in rows)!=n:raise ValueError('Collective league mismatch '+k)
+ if len(total)!=(2 if allow_groups else 1):raise ValueError('Unexpected collective totals')
+ totals=[list(map(int,t.split()[:18])) for t in total]
+ for index,k in enumerate(FIELDS):
+  if sum(r[k] for r in rows)!=sum(t[index] for t in totals):raise ValueError('Collective league mismatch '+k)
  return rows
