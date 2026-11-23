@@ -19,7 +19,11 @@ def raw_homers(raw,source):
   if end is None:raise ValueError('Incomplete raw home run number')
   date,rest=' '.join(lines[i:end]).split(' ',1)
   entries.append(lines[end]+' '+date+' '+lines[i-1]+' '+rest)
- return homers('\n'.join(entries),source)
+ try:return homers('\n'.join(entries),source)
+ except ValueError:
+  print('HR raw diagnostic:',len(entries),repr(lines[:16]),repr(lines[-16:]),flush=True)
+  print('HR sequence:',[e.split(' ',1)[0] for e in entries],flush=True)
+  raise
 def download(path):
  try:
   grouped=path.replace('-Clasificatoria.pdf','-Clasificatoria-Grupos.pdf')
