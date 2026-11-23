@@ -16,7 +16,7 @@ concurrency:
 jobs:
   equipos:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -62,6 +62,14 @@ jobs:
            assert len(staff)>=2,'Cuerpo técnico vacío o incompleto'
            assert len({p['sourceId'] for p in roster})==len(roster),'Jugadores repetidos'
            return {'code':code,'name':TEAMS[code],'source':BASE+'general/equipos?eq='+code.lower(),'roster':roster,'staff':staff}
+          def fetch_team(code):
+           for attempt,timeout in enumerate((25,35,45)):
+            try:
+             with urllib.request.urlopen(BASE+'general/equipos?eq='+code.lower(),timeout=timeout) as response:
+              return parse(response.read(),code)
+            except Exception:
+             if attempt==2:raise
+             time.sleep(3*(attempt+1))
           def main():
            try:data=json.loads(FILE.read_text());assert data['edition']==65
            except (OSError,ValueError,KeyError,AssertionError):data={'schema':1,'competition':'nacional','edition':65,'teams':{}}
@@ -69,7 +77,7 @@ jobs:
            for code in os.environ.get('TEAM_CODES',','.join(TEAMS)).split(','):
             now=datetime.datetime.now(datetime.timezone.utc).isoformat()
             try:
-             raw=urllib.request.urlopen(BASE+'general/equipos?eq='+code.lower(),timeout=25).read();team=parse(raw,code)
+             team=fetch_team(code)
              digest=hashlib.sha256(json.dumps(team,sort_keys=True).encode()).hexdigest()[:16];old=data['teams'].get(code,{})
              changed=digest!=old.get('fingerprint');team.update(checkedAt=now,fingerprint=digest,changedAt=now if changed else old.get('changedAt',now))
              data['teams'][code]=team
@@ -78,6 +86,7 @@ jobs:
             except Exception as e:failures.append({'code':code,'error':str(e)[:200],'checkedAt':now});print('::warning::'+code+' '+str(e),flush=True)
             data.update(updatedAt=now,failures=failures);write(FILE,data)
            if not data['teams']:raise RuntimeError('No team data available')
+           if failures:raise RuntimeError('Pending team refreshes: '+', '.join(f['code'] for f in failures))
           if __name__=='__main__':main()
           PYTEAMS
       - name: Respaldo de los equipos recuperados
