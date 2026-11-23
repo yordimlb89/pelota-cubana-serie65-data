@@ -76,6 +76,11 @@ def prioritized_paths():
 
 def run_downloads(download_fn=download,publish_fn=publish_checkpoint):
  reports=dict(old.get('reports',{}));errors=dict(old.get('errors',{}));updated=0;pending=set(paths);push_errors=[]
+ try:age=(datetime.now(timezone.utc)-datetime.fromisoformat(old['checkedAt'])).total_seconds()
+ except (KeyError,ValueError):age=99999
+ if errors and 0<=age<1800:
+  pending={p for p in paths if p in errors or p not in reports or not (ROOT/'current'/p).exists()}
+ selected=set(pending)
  def save(final=False,push=False):
   old.update(schema=1,edition=65,competition='nacional',reports=reports,checkedAt=datetime.now(timezone.utc).isoformat(),errors=errors,pending=sorted(pending),inProgress=not final)
   tmp=FILE.with_suffix('.tmp');tmp.write_text(json.dumps(old,ensure_ascii=False,separators=(',',':'))+'\n');tmp.replace(FILE)
@@ -84,7 +89,7 @@ def run_downloads(download_fn=download,publish_fn=publish_checkpoint):
    except Exception as e:push_errors.append(str(e));print('Checkpoint publication pending:',str(e),flush=True)
  try:
   with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
-   futures=[pool.submit(download_fn,p) for p in prioritized_paths()]
+   futures=[pool.submit(download_fn,p) for p in prioritized_paths() if p in selected]
    for future in concurrent.futures.as_completed(futures):
     path,meta,body,data,error=future.result();pending.discard(path)
     if error:errors[path]=error
