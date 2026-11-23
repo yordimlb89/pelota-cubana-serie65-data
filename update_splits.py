@@ -31,7 +31,7 @@ def parse(raw,team,tipo):
 
 def fetch(job):
  team,tipo=job;url=BASE+f'estadisticas/estadisticas?eq={team}&tab=0&tipo={tipo}'
- for timeout in (20,35):
+ for timeout in (20,35,50):
   try:
    with urllib.request.urlopen(url,timeout=timeout) as response:rows=parse(response.read(),team,tipo)
    return f'{team}-{tipo}',dict(rows=rows,updatedAt=NOW,source=url)
@@ -42,11 +42,19 @@ def main():
  try:old=json.loads(PATH.read_text())
  except (OSError,ValueError):old={}
  blocks=old.get('blocks',{});failures=[]
+ jobs=[(t,k) for t in TEAMS for k in KINDS]
+ # Resume recent partial runs: only retry blocks that failed or were not checked.
+ try:
+  age=(datetime.datetime.fromisoformat(NOW)-datetime.datetime.fromisoformat(old['checkedAt'])).total_seconds()
+ except (KeyError,ValueError):age=99999
+ if old.get('failures') and 0<=age<1800:
+  failed={f['key'] for f in old['failures']}
+  jobs=[(t,k) for t,k in jobs if f'{t}-{k}' in failed or f'{t}-{k}' not in blocks]
  def save():
   out=dict(schema=1,edition=65,checkedAt=NOW,blocks=blocks,failures=failures)
   tmp=PATH.with_suffix('.tmp');tmp.write_text(json.dumps(out,ensure_ascii=False,separators=(',',':')));tmp.replace(PATH)
  with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
-  for key,value in pool.map(fetch,[(t,k) for t in TEAMS for k in KINDS]):
+  for key,value in pool.map(fetch,jobs):
    if 'error' in value:failures.append(dict(key=key,error=value['error']))
    else:blocks[key]=value
    save();print(key,'pending' if 'error' in value else len(value['rows']),flush=True)
