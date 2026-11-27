@@ -117,6 +117,24 @@ except Exception as exc:
  games=copy.deepcopy(previous_data.get('snapshot',{}).get('games',[]))
  if not games:raise
  for g in games:g['reportId']=uid('game:'+str(g['number'])) if g.get('score') is not None else None
+# Verified daily bulletin: explicit game numbers, team roles and final scores.
+# The official calendar may still show these completed games as 0-0.
+# Bulletin PARTE No 43 (dated by actual games, 2026-11-26), checked against
+# beisbolencuba.com/series/serie-nacional-beisbol-2026-2027/clasificatoria/resultados-26-de-noviembre-de-2026.html.
+# Never overwrite a conflicting score or team identity; flag it for review.
+reviewed_results={
+ 317:('GTM','SSP',[5,1]), 322:('MTZ','IND',[0,7]),
+ 323:('IJV','MAY',[8,3]), 324:('PRI','VCL',[10,9]),
+ 329:('CFG','ART',[8,4]), 332:('PRI','VCL',[0,3]),
+}
+for game in games:
+ reviewed=reviewed_results.get(game['number'])
+ if reviewed is None:continue
+ away,home,score=reviewed
+ if (game['away'],game['home'])!=(away,home) or (game.get('score') is not None and game['score']!=score):
+  failed('reviewed-game-'+str(game['number']),ValueError('Teams or score conflict with verified bulletin'))
+  continue
+ game.update(score=score[:],date='2026-11-26',time='',reportId=uid('game:'+str(game['number'])),reviewedResultSource='Parte No 43 / 26 Nov 2026')
 jobs=[('team-'+code,'estadisticas/estadisticas?eq='+code+'&tipo=1&tab=0') for code in TEAMS]+[('standings','estadisticas/Posiciones.aspx'),('bat','estadisticas/estadisticas?eq=snb&tab=0&tipo=1')]
 docs={};individual=[];stale_teams=[]
 old_individual=previous_data.get('reports',{}).get(uid('individual'),{}).get('structured',[])
