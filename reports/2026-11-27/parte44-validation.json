@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-27",
+  "source": "PARTE No 44.xls aportado por el usuario",
+  "games": [
+    321,
+    325,
+    326,
+    335,
+    336
+  ],
+  "checks": {
+    "runs": "match_all",
+    "hits": "match_all",
+    "homeRuns": "match_all",
+    "errors": "discrepancy"
+  },
+  "issues": [
+    {
+      "game": 336,
+      "team": "GRA",
+      "stat": "E",
+      "bulletin": 4,
+      "boxscorePlayerSum": 5,
+      "status": "requires_official_confirmation",
+      "action": "Preserve official values; do not silently reconcile"
+    }
+  ],
+  "complete": false
+}
