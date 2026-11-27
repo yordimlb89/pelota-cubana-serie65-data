@@ -163,6 +163,8 @@ for t in individual:
  if found:found['rows']+=t['rows']
  else:merged.append(t)
 finished=[g for g in games if g['score'] is not None]
+# Prioritize reviewed games that have not yet yielded a valid boxscore.
+finished.sort(key=lambda g:(g['number'] not in reviewed_results or uid('game:'+str(g['number'])) in previous_data.get('reports',{}),g['number']))
 previous={g['id']:g for g in previous_data.get('snapshot',{}).get('games',[])}
 def box(g):
  saved=previous_data.get('reports',{}).get(uid('game:'+str(g['number'])))
