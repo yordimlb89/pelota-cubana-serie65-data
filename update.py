@@ -127,6 +127,8 @@ reviewed_results={
  323:('IJV','MAY',[8,3]), 324:('PRI','VCL',[10,9]),
  329:('CFG','ART',[8,4]), 332:('PRI','VCL',[0,3]),
 }
+reviewed_results.update({321:('CFG','ART',[8,4]),325:('GTM','SSP',[3,5]),326:('SCU','CAV',[7,6]),335:('HOL','CMG',[10,6]),336:('GRA','LTU',[13,14])})
+reviewed_nov27={321,325,326,335,336}
 for game in games:
  reviewed=reviewed_results.get(game['number'])
  if reviewed is None:continue
@@ -134,7 +136,9 @@ for game in games:
  if (game['away'],game['home'])!=(away,home) or (game.get('score') is not None and game['score']!=score):
   failed('reviewed-game-'+str(game['number']),ValueError('Teams or score conflict with verified bulletin'))
   continue
- game.update(score=score[:],date='2026-11-26',time='',reportId=uid('game:'+str(game['number'])),reviewedResultSource='Parte No 43 / 26 Nov 2026')
+ date='2026-11-27' if game['number'] in reviewed_nov27 else '2026-11-26'
+ source='Parte No 44 / 27 Nov 2026' if game['number'] in reviewed_nov27 else 'Parte No 43 / 26 Nov 2026'
+ game.update(score=score[:],date=date,time='',reportId=uid('game:'+str(game['number'])),reviewedResultSource=source)
 jobs=[('team-'+code,'estadisticas/estadisticas?eq='+code+'&tipo=1&tab=0') for code in TEAMS]+[('standings','estadisticas/Posiciones.aspx'),('bat','estadisticas/estadisticas?eq=snb&tab=0&tipo=1')]
 docs={};individual=[];stale_teams=[]
 old_individual=previous_data.get('reports',{}).get(uid('individual'),{}).get('structured',[])
