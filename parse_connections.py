@@ -14,7 +14,14 @@ def parse(text):
    if re.fullmatch(r'(?:\d+\s+){18}(?:\d+(?:\.\d+)?|-)',line) and joined:
     joined[-1]+=' '+line
    else:joined.append(line)
-  lines=joined
+  # Restore a first numeric cell lifted above a long name by pdftotext.
+  repaired=[]
+  for line in joined:
+   m=re.match(r'^(.*?\D)\s+((?:\d+\s+){17}(?:\d+(?:\.\d+)?|-))$',line)
+   if m and repaired and re.fullmatch(r'\d+',repaired[-1]):
+    first=repaired.pop();line=m[1].strip()+' '+first+' '+m[2]
+   repaired.append(line)
+  lines=repaired
   names=[s for s in lines if s in TEAMS]
   if len(names)!=1:raise ValueError('Unrecognized or ambiguous team page')
   name=names[0];players=[];total=None
