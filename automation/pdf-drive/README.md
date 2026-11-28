@@ -41,4 +41,8 @@ El 27 de noviembre a las 23:02:42 (America/New_York), una ejecución de sincroni
 
 ## Horario vigente
 
-Desde el 27 de noviembre de 2026, sincronizarPDF retorna inmediatamente antes de las 17:00 en America/New_York, sin consultar el sitio ni Drive. El activador sigue despertando cada 15 minutos, pero el trabajo solo se realiza desde las 17:00 hasta medianoche. El cambio está guardado en el proyecto activo de Google y en este repositorio. Si las fuentes no están completas antes de medianoche, la siguiente revisión será desde las 17:00 del día siguiente.
+Desde las 17:00 (America/New_York) se inicia el ciclo para las notas del día siguiente. Continúa cada 15 minutos, también después de medianoche si sigue pendiente y la jornada destinataria no ha comenzado. Conserva el avance por juego entre ejecuciones. Espera el parte y los boxscores validados de los juegos terminados. Solo cierra cuando todos los PDF esperados han sido procesados y se comprueban en Drive por ID, carpeta, MIME, tamaño y SHA-256. Un fallo no marca el ciclo completo.
+
+Después del cierre, las invocaciones del activador retornan sin consultas al sitio o Drive hasta el ciclo de las 17:00 siguiente. El activador no se borra ni se duplica. La tarea paralela de agente permanece pausada.
+
+Pruebas de lógica: antes de 17:00 inactivo; inicio a las 17:00; continuación después de medianoche; cierre con entrega verificada; ninguna consulta tras cierre; fallo de Drive impide cierre y permite reintento. Cambio guardado en el proyecto activo de Google y en GitHub. Las previas nunca se regeneran después de iniciarse la jornada destinataria.
