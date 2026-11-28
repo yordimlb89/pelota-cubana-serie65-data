@@ -34,3 +34,7 @@ No mover ni renombrar los archivos gestionados por este script, ni sustituirlos 
 No es un servicio en tiempo real. La disponibilidad depende del parte, los datos de origen, las cuotas y el horario aproximado de los activadores de Google. Consultar PCU_ESTADO mediante estado para pendientes y errores.
 
 Validación local: sintaxis Node y 18 comprobaciones, con boxscore real 240 y modelo 248 del 11 de noviembre de 2026. Las ejecuciones programadas y su activador se comprobaron directamente en Google el 27 de noviembre. La presencia del código en GitHub no debe usarse para inferir el estado operativo: comprobar los logs del proyecto.
+
+## Prueba posterior a la restauración
+
+El 27 de noviembre a las 23:02:42 (America/New_York), una ejecución de sincronizarPDF iniciada desde el editor terminó con updated=[344,334], pending=[] y complete=[]. La cuota de dos PDF por ejecución explica que no marque aún toda la tanda como completa. El proceso validó los archivos restaurados y actualizó sus propiedades de seguimiento; si los bytes coinciden, no vuelve a subirlos. Se verificaron nueve PDF únicos con sus IDs originales en la carpeta del 28. La tarea paralela de ChatGPT «Guardar notas de juego en Drive» quedó pausada para evitar interferencias; el activador de Google cada 15 minutos sigue activo. No se ha cambiado el código del script.
