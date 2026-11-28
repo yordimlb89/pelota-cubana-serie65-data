@@ -38,3 +38,7 @@ Validación local: sintaxis Node y 18 comprobaciones, con boxscore real 240 y mo
 ## Prueba posterior a la restauración
 
 El 27 de noviembre a las 23:02:42 (America/New_York), una ejecución de sincronizarPDF iniciada desde el editor terminó con updated=[344,334], pending=[] y complete=[]. La cuota de dos PDF por ejecución explica que no marque aún toda la tanda como completa. El proceso validó los archivos restaurados y actualizó sus propiedades de seguimiento; si los bytes coinciden, no vuelve a subirlos. Se verificaron nueve PDF únicos con sus IDs originales en la carpeta del 28. La tarea paralela de ChatGPT «Guardar notas de juego en Drive» quedó pausada para evitar interferencias; el activador de Google cada 15 minutos sigue activo. No se ha cambiado el código del script.
+
+## Horario vigente
+
+Desde el 27 de noviembre de 2026, sincronizarPDF retorna inmediatamente antes de las 17:00 en America/New_York, sin consultar el sitio ni Drive. El activador sigue despertando cada 15 minutos, pero el trabajo solo se realiza desde las 17:00 hasta medianoche. El cambio está guardado en el proyecto activo de Google y en este repositorio. Si las fuentes no están completas antes de medianoche, la siguiente revisión será desde las 17:00 del día siguiente.
