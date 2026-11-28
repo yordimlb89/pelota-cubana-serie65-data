@@ -130,6 +130,7 @@ function guardarPDF(folder,name,blob,old,sha) {
   return {id:file.getId(),bytes,sha256:sha};
 }
 function sincronizarPDF() {
+  if (reloj().minute < 17 * 60) return; // Solo desde las 17:00, hora de Miami.
   const props=PropertiesService.getScriptProperties();if(props.getProperty('PCU_ACTIVO')!=='1')return;
   const lock=LockService.getScriptLock();if(!lock.tryLock(1000))return;
   const started=Date.now(),clock=reloj(),result={at:new Date().toISOString(),updated:[],pending:[],complete:[]};let count=0;
