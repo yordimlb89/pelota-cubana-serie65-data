@@ -130,14 +130,18 @@ function guardarPDF(folder,name,blob,old,sha) {
   return {id:file.getId(),bytes,sha256:sha};
 }
 function sincronizarPDF() {
-  if (reloj().minute < 17 * 60) return; // Solo desde las 17:00, hora de Miami.
+  const turno = reloj();
+  const inicio = turno.minute >= 17 * 60 ? turno.date : fechaMas(turno.date, -1);
+  const control = PropertiesService.getScriptProperties();
+  if (turno.minute >= 17 * 60) control.setProperty("PCU_TURNO", inicio);
+  if (control.getProperty("PCU_TURNO") !== inicio || control.getProperty("PCU_CIERRE_" + inicio) === "1") return;
   const props=PropertiesService.getScriptProperties();if(props.getProperty('PCU_ACTIVO')!=='1')return;
   const lock=LockService.getScriptLock();if(!lock.tryLock(1000))return;
   const started=Date.now(),clock=reloj(),result={at:new Date().toISOString(),updated:[],pending:[],complete:[]};let count=0;
   limiteEjecucion=started+PCU.budgetMs;
   try {
     const feed=jsonSitio('/api/serie65'),daily=jsonSitio('/api/serie65/daily'),gs=daily.games||feed.games;
-    for(const day of [clock.date,fechaMas(clock.date,1)]) {
+    for(const day of [fechaMas(inicio,1)]) {
       const selected=gs.filter(g=>g.date===day&&!noCelebrado(g));
       if(!selected.length||jornadaIniciada(selected,day,clock))continue;
       let gate;
@@ -161,7 +165,7 @@ function sincronizarPDF() {
           const m=jsonSitio('/api/game-notes?game='+g.number);comprobarModelo(m,g,gate.prior);
           const fingerprint=hashTexto(PCU.revision+JSON.stringify(normalizarContenido(m)));
           const old=JSON.parse(props.getProperty(key)||'null');
-          if(old?.fingerprint===fingerprint)continue;
+          if(old?.fingerprint===fingerprint) { props.setProperty("PCU_OK_"+inicio+"_"+g.number,"1"); continue; }
           if(Date.now()-started>PCU.budgetMs-150000)throw Error('Continuará en la próxima ejecución');
           const response=solicitud(PCU.site+'/api/game-notes?game='+g.number+'&format=pdf',{timeoutSeconds:120});
           const blob=response.getBlob(),bytes=blob.getBytes();
@@ -172,16 +176,27 @@ function sincronizarPDF() {
           const folder=carpetaFecha(day,true),sha=hashBytes(bytes);
           const saved=guardarPDF(folder,name,blob,old,sha);
           props.setProperty(key,JSON.stringify(Object.assign(saved,{fingerprint,game:g.number,date:day,sourceCuts:m.sourceCuts})));
+          props.setProperty("PCU_OK_"+inicio+"_"+g.number,"1");
           result.updated.push(g.number);count++;
         } catch(e) {complete=false;result.pending.push('Juego '+g.number+': '+e.message);}
       }
-      if(complete&&jobs.every(j=>props.getProperty(j.key)))result.complete.push(day);
+      if(result.pending.length === 0 && jobs.every(j=>props.getProperty(j.key) && props.getProperty("PCU_OK_"+inicio+"_"+j.g.number)==="1")) {
+        const folder = carpetaFecha(day,false);
+        if (!folder) throw Error("Falta la carpeta de entrega " + day);
+        for (const j of jobs) {
+          const saved = JSON.parse(props.getProperty(j.key));
+          const meta = metadataDrive(saved.id);
+          if (meta.trashed || meta.mimeType !== "application/pdf" || !meta.parents?.includes(folder.getId()) || Number(meta.size) !== saved.bytes || meta.sha256Checksum !== saved.sha256) throw Error("PDF pendiente de verificar en Drive: " + j.g.number);
+        }
+        result.complete.push(day);
+        props.setProperty("PCU_CIERRE_" + inicio, "1");
+      }
     }
     // Operational metadata stays in this private script, never in the shared PDF folder.
     props.setProperty('PCU_ESTADO',JSON.stringify(result));console.log(JSON.stringify(result));
     // Keep ample space below the Apps Script property storage quota.
     const cutoff=fechaMas(clock.date,-90);
-    Object.keys(props.getProperties()).filter(k=>/^PCU_\d{4}-\d{2}-\d{2}_/.test(k)&&k.slice(4,14)<cutoff).forEach(k=>props.deleteProperty(k));
+    Object.keys(props.getProperties()).filter(k=>{const m=k.match(/^PCU_(?:OK_|CIERRE_)?(\d{4}-\d{2}-\d{2})/);return m && m[1]<cutoff;}).forEach(k=>props.deleteProperty(k));
   } catch(e) {
     result.pending.push(e.message);
     props.setProperty('PCU_ESTADO',JSON.stringify(result));
